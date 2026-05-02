@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/auth/login/login.dart';
-import 'package:registagrodriver/auth/otp_screen%20/otp_screnn.dart';
+import 'package:registagrodriver/auth/otpscreen/otp_screnn.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
 class SignUp extends StatefulWidget {

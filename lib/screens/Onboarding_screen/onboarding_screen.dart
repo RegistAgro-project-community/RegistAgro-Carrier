@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/auth/login/login.dart';
 import 'package:registagrodriver/auth/signup/sign_up.dart';
-import '../theme/app_theme.dart';
+import '../../theme/app_theme.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

@@ -96,7 +96,6 @@ class _NewTripScreenState extends State<NewTripScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Type selector
             const Text('Tipo de Transporte',
                 style: TextStyle(color: REGISTheme.textSecondary, fontSize: 13)),
             const SizedBox(height: 8),
@@ -143,7 +142,6 @@ class _NewTripScreenState extends State<NewTripScreen> {
             const Text('Detalhes', style: TextStyle(color: REGISTheme.textSecondary, fontSize: 13)),
             const SizedBox(height: 8),
 
-            // Date time picker
             GestureDetector(
               onTap: _pickDate,
               child: Container(
