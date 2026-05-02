@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/auth/signup/sign_up.dart';
 import 'package:registagrodriver/components/showModalBottomSheetAdmin/modal_bottomsheet_admin.dart';
-import 'package:registagrodriver/screens/main_nav_screen.dart';
+import 'package:registagrodriver/screens/MainNavScreen/main_nav_screen.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
 class Login extends StatefulWidget {
@@ -22,13 +22,25 @@ class _LoginState extends State<Login> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const MainNavScreen()),
-        (route) => false,
-      );
+
+    try {
+      await Future.delayed(const Duration(seconds: 1));
+
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const MainNavScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
   }
 

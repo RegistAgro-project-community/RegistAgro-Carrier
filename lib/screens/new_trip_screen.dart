@@ -36,6 +36,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
     );
     if (date != null) {
       final time = await showTimePicker(
+        // ignore: use_build_context_synchronously
         context: context,
         initialTime: TimeOfDay.fromDateTime(_selectedDate),
         builder: (ctx, child) => Theme(

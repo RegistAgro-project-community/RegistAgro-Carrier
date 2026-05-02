@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/auth/login/login.dart';
-import 'package:registagrodriver/screens/main_nav_screen.dart';
+import 'package:registagrodriver/auth/otp_screen%20/otp_screnn.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
 class SignUp extends StatefulWidget {
@@ -24,15 +24,17 @@ class _SignUpState extends State<SignUp> {
   final _passwordConfirmController = TextEditingController();
 
   void submit() async {
+    FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => isLoading = true);
     await Future.delayed(const Duration(seconds: 1));
+    setState(() => isLoading = false);
+
     if (mounted) {
-      Navigator.pushAndRemoveUntil(
+      Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const MainNavScreen()),
-        (route) => false,
+        MaterialPageRoute(builder: (_) => const OtpScreen()),
       );
     }
   }

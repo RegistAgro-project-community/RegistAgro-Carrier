@@ -21,6 +21,7 @@ class REGISTheme {
           primary: accent,
           secondary: accentLight,
           surface: surface,
+          // ignore: deprecated_member_use
           background: primary,
         ),
         appBarTheme: const AppBarTheme(

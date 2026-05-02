@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/models.dart';
-import 'trip_detail_screen.dart';
 
 class TripsScreen extends StatefulWidget {
   const TripsScreen({super.key});
@@ -47,54 +46,54 @@ class _TripsScreenState extends State<TripsScreen> with SingleTickerProviderStat
       body: TabBarView(
         controller: _tabController,
         children: [
-          _TripList(trips: pending, emptyMsg: 'Nenhuma viagem pendente'),
-          _TripList(trips: completed, emptyMsg: 'Nenhum histórico de viagens'),
+          // _TripList(trips: pending, emptyMsg: 'Nenhuma viagem pendente'),
+          // _TripList(trips: completed, emptyMsg: 'Nenhum histórico de viagens'),
         ],
       ),
     );
   }
 }
 
-class _TripList extends StatelessWidget {
-  final List<Trip> trips;
-  final String emptyMsg;
+// class _TripList extends StatelessWidget {
+//   final List<Trip> trips;
+//   final String emptyMsg;
 
-  const _TripList({required this.trips, required this.emptyMsg});
+//   const _TripList({required this.trips, required this.emptyMsg});
 
-  @override
-  Widget build(BuildContext context) {
-    if (trips.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inbox_rounded, size: 64, color: REGISTheme.textSecondary.withOpacity(0.3)),
-            const SizedBox(height: 16),
-            Text(emptyMsg, style: const TextStyle(color: REGISTheme.textSecondary)),
-          ],
-        ),
-      );
-    }
+//   @override
+//   Widget build(BuildContext context) {
+//     if (trips.isEmpty) {
+//       return Center(
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             Icon(Icons.inbox_rounded, size: 64, color: REGISTheme.textSecondary.withOpacity(0.3)),
+//             const SizedBox(height: 16),
+//             Text(emptyMsg, style: const TextStyle(color: REGISTheme.textSecondary)),
+//           ],
+//         ),
+//       );
+//     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: trips.length,
-      itemBuilder: (_, i) => _TripItem(
-        trip: trips[i],
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => TripDetailScreen(trip: trips[i])),
-        ),
-      ),
-    );
-  }
-}
+//     return ListView.builder(
+//       padding: const EdgeInsets.all(16),
+//       itemCount: trips.length,
+//       itemBuilder: (_, i) => _TripItem(
+//         trip: trips[i],
+//         onTap: () => Navigator.push(
+//           context,
+//           MaterialPageRoute(builder: (_) => TripDetailS·creen(trip: trips[i])),
+//         ),
+//       ),
+//     );
+//   }
+// }
 
-class _TripItem extends StatelessWidget {
+class TripItem extends StatelessWidget {
   final Trip trip;
   final VoidCallback onTap;
 
-  const _TripItem({required this.trip, required this.onTap});
+  const TripItem({super.key, required this.trip, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

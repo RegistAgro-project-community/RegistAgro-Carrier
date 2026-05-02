@@ -29,6 +29,7 @@ class ProfileScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: REGISTheme.accent, width: 3),
+                          // ignore: deprecated_member_use
                           color: REGISTheme.accent.withOpacity(0.2),
                         ),
                         child: Center(
@@ -141,6 +142,7 @@ class ProfileScreen extends StatelessWidget {
                     child: Text(
                       'RegistAgro v1.0.0 • Transport Information System',
                       style: TextStyle(
+                          // ignore: deprecated_member_use
                           color: REGISTheme.textSecondary.withOpacity(0.5), fontSize: 11),
                     ),
                   ),

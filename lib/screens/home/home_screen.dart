@@ -73,13 +73,16 @@ class _HomeScreen extends State<HomeScreen>  {
                           ),
                         ],
                       ),
-                      TextButton(
-                        onPressed: () {
+                      Switch(
+                        activeThumbColor: Colors.white,
+                        activeTrackColor: Colors.green,
+                        value: isLoading, 
+                        onChanged: (value) {
                           setState(() {
-                            isLoading = !isLoading;
+                            isLoading = value;
                           });
-                        }, 
-                        child: Text("toggle")),
+                        }
+                      )
                     ],
                   ),
                 ),

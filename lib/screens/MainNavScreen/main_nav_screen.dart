@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'home/home_screen.dart';
-import 'trips_screen.dart';
-import 'profile/profile_screen.dart';
-import 'Routes/routes_screen.dart';
+import 'package:registagrodriver/screens/vehicle/vehicle_screen.dart';
+import '../home/home_screen.dart';
+import '../profile/profile_screen.dart';
 
 class MainNavScreen extends StatefulWidget {
   const MainNavScreen({super.key});
@@ -17,8 +16,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const TripsScreen(),
-    const RoutesScreen(),
+    const VehiclesAvailable(),
     const ProfileScreen(),
   ];
 
@@ -31,6 +29,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
+              // ignore: deprecated_member_use
               color: Colors.black.withOpacity(0.08),
               blurRadius: 16,
               offset: const Offset(0, -2),
@@ -66,11 +65,6 @@ class _MainNavScreenState extends State<MainNavScreen> {
               icon: Icon(Icons.car_repair),
               activeIcon: Icon(Icons.car_repair),
               label: 'Veículo',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.linear_scale),
-              activeIcon: Icon(Icons.linear_scale),
-              label: 'Rota',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline_rounded),

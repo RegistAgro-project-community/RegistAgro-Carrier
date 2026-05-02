@@ -104,6 +104,7 @@ class _NotifCard extends StatelessWidget {
         padding: const EdgeInsets.only(right: 16),
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
+          // ignore: deprecated_member_use
           color: REGISTheme.danger.withOpacity(0.2),
           borderRadius: BorderRadius.circular(16),
         ),
@@ -116,9 +117,11 @@ class _NotifCard extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
+            // ignore: deprecated_member_use
             color: notif.isRead ? REGISTheme.cardBg : REGISTheme.cardBg.withOpacity(0.8),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
+              // ignore: deprecated_member_use
               color: notif.isRead ? REGISTheme.divider : typeColor.withOpacity(0.3),
             ),
           ),
@@ -128,6 +131,7 @@ class _NotifCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
+                  // ignore: deprecated_member_use
                   color: typeColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -169,6 +173,7 @@ class _NotifCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       _formatTime(notif.time),
+                      // ignore: deprecated_member_use
                       style: TextStyle(color: REGISTheme.textSecondary.withOpacity(0.6), fontSize: 11),
                     ),
                   ],

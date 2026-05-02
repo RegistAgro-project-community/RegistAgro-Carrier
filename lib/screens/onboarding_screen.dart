@@ -141,6 +141,8 @@ class _OnboardingPage {
   });
 
   Widget build(BuildContext context) {
+    // ignore: deprecated_member_use
+    var withOpacity = REGISTheme.accent.withOpacity(0.1);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
@@ -151,8 +153,10 @@ class _OnboardingPage {
             height: 120,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: REGISTheme.accent.withOpacity(0.1),
+              // ignore: deprecated_member_use
+              color: withOpacity,
               border: Border.all(
+                // ignore: deprecated_member_use
                 color: REGISTheme.accent.withOpacity(0.3),
                 width: 2,
               ),
