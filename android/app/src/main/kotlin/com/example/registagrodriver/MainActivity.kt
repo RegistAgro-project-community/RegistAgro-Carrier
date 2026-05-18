@@ -1,0 +1,5 @@
+package com.example.registagrodriver
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()
