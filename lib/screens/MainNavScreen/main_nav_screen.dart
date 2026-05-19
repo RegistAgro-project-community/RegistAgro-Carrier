@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:registagrodriver/repositories/profile.dart';
+import 'package:registagrodriver/screens/profile/profile_class.dart';
 import 'package:registagrodriver/screens/vehicle/vehicle_screen.dart';
 import '../home/home_screen.dart';
 import '../profile/profile_screen.dart';
@@ -13,12 +15,63 @@ class MainNavScreen extends StatefulWidget {
 
 class _MainNavScreenState extends State<MainNavScreen> {
   int _currentIndex = 0;
+  bool isloading = true;
+  String? errorMessage;
+  String? name;
+  UserModel userData = UserModel(
+    name: "Cadete Express",
+    email: "myemailtemp2@gmail.com",
+    phone: "941877294",
+    bio: "Seu pedido nosso objectivo",
+    province: "Luanda",
+    adress: "Golf 2",
+    balance: "0Kz"
+  );
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
+  List<Widget> get _screens => [
+    HomeScreen(name: userData.name),
     const VehiclesAvailable(),
-    const ProfileScreen(),
+    ProfileScreen(
+      name: name,
+      adress: userData.adress,
+      email: userData.email,
+      phone: userData.phone,
+      photo: userData.photoPath,
+      province: userData.province,
+      balance: userData.balance
+    ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserData();
+    });
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      isloading = true;
+    });
+
+    try {
+      final data = await Profile().userData(context);
+
+      setState(() {
+        name = data.name.split(" ")[0];
+        userData = data;
+
+        errorMessage = null;
+        isloading = false;
+      });
+    } on Exception catch (e) {
+      setState(() {
+        errorMessage = e.toString();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -103,19 +103,19 @@ class TripItem extends StatelessWidget {
     switch (trip.status) {
       case TripStatus.pending:
         statusColor = REGISTheme.warning;
-        statusLabel = 'Pendente';
+        statusLabel = 'pendente';
         break;
       case TripStatus.inProgress:
         statusColor = REGISTheme.accentLight;
-        statusLabel = 'Em Curso';
+        statusLabel = 'em_andamento';
         break;
       case TripStatus.completed:
         statusColor = REGISTheme.success;
-        statusLabel = 'Concluída';
+        statusLabel = 'entregue';
         break;
       case TripStatus.cancelled:
         statusColor = REGISTheme.danger;
-        statusLabel = 'Cancelada';
+        statusLabel = 'rejeitada';
         break;
     }
 

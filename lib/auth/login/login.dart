@@ -1,8 +1,12 @@
+import 'package:elegant_notification/elegant_notification.dart';
+import 'package:elegant_notification/resources/arrays.dart';
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/auth/signup/sign_up.dart';
 import 'package:registagrodriver/components/showModalBottomSheetAdmin/modal_bottomsheet_admin.dart';
+import 'package:registagrodriver/repositories/auth/login.dart';
 import 'package:registagrodriver/screens/MainNavScreen/main_nav_screen.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -23,24 +27,53 @@ class _LoginState extends State<Login> {
 
     setState(() => isLoading = true);
 
-    try {
-      await Future.delayed(const Duration(seconds: 1));
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const MainNavScreen()),
-          (route) => false,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => isLoading = false);
+    final res = await login(context, email, password);
+
+    if (!mounted) return;
+    setState(() => isLoading = false);
+    
+    if (res.containsKey('message')) {
+      ElegantNotification.success(
+        title: Text("${res['message']}"),
+        description: const Text(
+          "Seja bem-vindo de volta!",
+          style: TextStyle(fontFamily: 'Inter', color: Colors.grey),
+        ),
+        icon: const SizedBox(),
+        height: 75,
+        // ignore: use_build_context_synchronously
+        width: MediaQuery.of(context).size.width * .9,
+        animation: AnimationType.fromTop,
+        // ignore: use_build_context_synchronously
+      ).show(context);
+
+      final prefes = await SharedPreferences.getInstance();
+      prefes.setString("last_route", '/MainPage');
+
+      Navigator.pushAndRemoveUntil(
+        // ignore: use_build_context_synchronously
+        context,
+        MaterialPageRoute(builder: (context) => MainNavScreen()),
+        (route) => false,
+      );
+    } else {
+      ElegantNotification.error(
+        title: Text("Error"),
+        description: Text(
+          "${res['error']}",
+          style: TextStyle(fontFamily: 'Inter', color: Colors.grey),
+        ),
+        icon: const SizedBox(),
+        height: 75,
+        // ignore: use_build_context_synchronously
+        width: MediaQuery.of(context).size.width * .9,
+        animation: AnimationType.fromTop,
+        // ignore: use_build_context_synchronously
+      ).show(context);
+      
     }
   }
 

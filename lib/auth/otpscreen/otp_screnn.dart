@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:elegant_notification/elegant_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:registagrodriver/screens/MainNavScreen/main_nav_screen.dart';
+import 'package:registagrodriver/repositories/auth/signup.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({super.key});
@@ -68,40 +68,12 @@ class _OtpScreenState extends State<OtpScreen> {
 
     setState(() => isLoading = true);
 
-    await Future.delayed(const Duration(seconds: 2));
+    final signupClass = SignupValidations();
 
+    await signupClass.validateOtp(context, otpCode);
+    
     if (!mounted) return;
-
     setState(() => isLoading = false);
-
-    bool otpIsCorrect = otpCode == "123456";
-
-    if (otpIsCorrect) {
-      ElegantNotification.success(
-        title: const Text("Sucesso"),
-        description: const Text("Operação concluída com êxito!"),
-        height: 80,
-      ).show(context);
-
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (!mounted) return;
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const MainNavScreen()),
-        (route) => false,
-      );
-    } else {
-      _errorController.add(ErrorAnimationType.shake);
-      setState(() => otpCode = "");
-
-      ElegantNotification.error(
-        title: const Text("Erro"),
-        description: const Text("Código incorreto. Por favor, tente novamente!"),
-        height: 80,
-      ).show(context);
-    }
   }
 
   void resendCode() {
@@ -165,7 +137,9 @@ class _OtpScreenState extends State<OtpScreen> {
                   animationType: AnimationType.fade,
                   enableActiveFill: true,
                   onChanged: (value) => setState(() => otpCode = value),
-                  onCompleted: (value) {
+                  onCompleted: isLoading 
+                  ? null 
+                  : (value) {
                     setState(() => otpCode = value);
                     validateOtp();
                   },

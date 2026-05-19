@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/auth/login/login.dart';
-import 'package:registagrodriver/auth/otpscreen/otp_screnn.dart';
+import 'package:registagrodriver/repositories/auth/signup.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
 class SignUp extends StatefulWidget {
@@ -28,15 +28,21 @@ class _SignUpState extends State<SignUp> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => isLoading = false);
+    
+    final signupClass = SignupValidations(
+      name:  _nameController.text,
+      email:  _emailController.text,
+      phone:  _phoneController.text,
+      province:  _province.text,
+      adress:  _location.text,
+      pass1:  _passwordController.text,
+      pass2:  _passwordConfirmController.text,
+    );
 
-    if (mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const OtpScreen()),
-      );
-    }
+    await signupClass.sendEmail(context);
+
+    if (!mounted) return;
+    setState(() => isLoading = false);
   }
 
   @override
