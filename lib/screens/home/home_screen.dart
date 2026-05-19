@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
-
+// ignore: must_be_immutable
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  String? name;
+  HomeScreen({super.key, this.name});
 
   @override
   State<HomeScreen> createState() => _HomeScreen();
 }
 
-class _HomeScreen extends State<HomeScreen>  {
+class _HomeScreen extends State<HomeScreen> {
   bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: AppBar(backgroundColor: REGISTheme.surface),
       body: SingleChildScrollView(
         child: SafeArea(
           child: Container(
@@ -27,7 +26,7 @@ class _HomeScreen extends State<HomeScreen>  {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Olá, João Cabinda!",
+                  widget.name != null ? "Olá, ${widget.name}!" : "Olá",
                   style: TextStyle(
                     color: REGISTheme.primary,
                     fontSize: 17,
@@ -76,13 +75,13 @@ class _HomeScreen extends State<HomeScreen>  {
                       Switch(
                         activeThumbColor: Colors.white,
                         activeTrackColor: Colors.green,
-                        value: isLoading, 
+                        value: isLoading,
                         onChanged: (value) {
                           setState(() {
                             isLoading = value;
                           });
-                        }
-                      )
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -375,7 +374,7 @@ class _HomeScreen extends State<HomeScreen>  {
                           TextButton(
                             onPressed: () {},
                             style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero
+                              padding: EdgeInsets.zero,
                             ),
                             child: Text(
                               "Todas as viagens",
@@ -412,7 +411,7 @@ class _HomeScreen extends State<HomeScreen>  {
                               TextButton(
                                 onPressed: () {},
                                 style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero
+                                  padding: EdgeInsets.zero,
                                 ),
                                 child: Text(
                                   "Viagens confirmadas",
@@ -446,7 +445,7 @@ class _HomeScreen extends State<HomeScreen>  {
                               TextButton(
                                 onPressed: () {},
                                 style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero
+                                  padding: EdgeInsets.zero,
                                 ),
                                 child: Text(
                                   "Viagens concluídas",
@@ -457,7 +456,7 @@ class _HomeScreen extends State<HomeScreen>  {
                           ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ],
