@@ -1,13 +1,56 @@
 import 'package:flutter/material.dart';
-import 'package:registagrodriver/auth/login/login.dart';
+import 'package:registagrodriver/repositories/profile.dart';
+import 'package:registagrodriver/screens/profile/profile_class.dart';
 import '../../theme/app_theme.dart';
-import '../../models/models.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  final String? name;
+  final String? email;
+  final String? phone;
+  final String? photo;
+  final String? province;
+  final String? adress;
+  final String? balance;
+
+  const ProfileScreen({
+    super.key,
+    this.name,
+    this.email,
+    this.phone,
+    this.photo,
+    this.province,
+    this.adress,
+    this.balance
+  });
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  UserModel user = UserModel(
+    name: "Cadete Express",
+    email: "myemailtemp2@gmail.com",
+    phone: "941877294",
+    bio: "Seu pedido nosso objectivo",
+    province: "Luanda",
+    adress: "Golf 2",
+    balance: "0Kz"
+  );
 
   @override
   Widget build(BuildContext context) {
+    user = UserModel(
+      name: widget.name ?? user.name,
+      email: widget.email ?? user.email,
+      phone: widget.phone ?? user.phone,
+      bio: user.bio,
+      province: widget.province ?? user.province,
+      adress: widget.adress ?? user.adress,
+      photoPath: widget.photo,
+      balance: widget.balance ?? user.balance
+    );
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -20,7 +63,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  SizedBox(height: 50,),
+                  SizedBox(height: 50),
                   Stack(
                     children: [
                       Container(
@@ -28,13 +71,16 @@ class ProfileScreen extends StatelessWidget {
                         height: 80,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: REGISTheme.accent, width: 3),
+                          border: Border.all(
+                            color: REGISTheme.accent,
+                            width: 3,
+                          ),
                           // ignore: deprecated_member_use
                           color: REGISTheme.accent.withOpacity(0.2),
                         ),
                         child: Center(
                           child: Text(
-                            currentUser.name[0].toUpperCase(),
+                            user.name,
                             style: const TextStyle(
                               color: REGISTheme.accentLight,
                               fontSize: 32,
@@ -47,7 +93,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    currentUser.name,
+                    user.name,
                     style: const TextStyle(
                       color: REGISTheme.textPrimary,
                       fontSize: 20,
@@ -61,7 +107,11 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       _StatItem(value: '47', label: 'Viagens'),
                       _divider(),
-                      _StatItem(value: '4.8', label: 'Avaliação', icon: Icons.star_rounded),
+                      _StatItem(
+                        value: user.balance,
+                        label: 'Ganhos',
+                        icon: Icons.attach_money_outlined,
+                      ),
                     ],
                   ),
                 ],
@@ -72,57 +122,59 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Informações Pessoais',
+                  const Text(
+                    'Informações Pessoais',
                     style: TextStyle(
                       color: REGISTheme.textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      letterSpacing: 1
-                    )
+                      letterSpacing: 1,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   _InfoCard(
                     children: [
                       _ProfileRow(
-                        icon: Icons.person_outline, 
-                        label: 'Nome', 
-                        value: currentUser.name
+                        icon: Icons.person_outline,
+                        label: 'Nome',
+                        value: user.name,
                       ),
                       _ProfileRow(
-                        icon: Icons.email_outlined, 
-                        label: 'Email', 
-                        value: currentUser.email
+                        icon: Icons.email_outlined,
+                        label: 'Email',
+                        value: user.email,
                       ),
                       _ProfileRow(
-                        icon: Icons.phone_outlined, 
-                        label: 'Telefone', 
-                        value: currentUser.phone
+                        icon: Icons.phone_outlined,
+                        label: 'Telefone',
+                        value: user.phone,
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const Text('Configurações',
+                  const Text(
+                    'Configurações',
                     style: TextStyle(
-                        color: REGISTheme.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1
-                      )
+                      color: REGISTheme.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1,
                     ),
+                  ),
                   const SizedBox(height: 8),
                   _InfoCard(
                     children: [
                       _SettingRow(
-                        icon: Icons.edit_outlined, 
-                        label: 'Editar Perfil'
+                        icon: Icons.edit_outlined,
+                        label: 'Editar Perfil',
                       ),
                       _SettingRow(
-                        icon: Icons.lock_outline, 
-                        label: 'Alterar Senha'
+                        icon: Icons.lock_outline,
+                        label: 'Alterar Senha',
                       ),
                       _SettingRow(
-                        icon: Icons.help_outline_rounded, 
-                        label: 'Ajuda e Suporte'
+                        icon: Icons.help_outline_rounded,
+                        label: 'Ajuda e Suporte',
                       ),
                     ],
                   ),
@@ -142,8 +194,10 @@ class ProfileScreen extends StatelessWidget {
                     child: Text(
                       'RegistAgro v1.0.0 • Transport Information System',
                       style: TextStyle(
-                          // ignore: deprecated_member_use
-                          color: REGISTheme.textSecondary.withOpacity(0.5), fontSize: 11),
+                        // ignore: deprecated_member_use
+                        color: REGISTheme.textSecondary.withOpacity(0.5),
+                        fontSize: 11,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -156,18 +210,18 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _divider() => Container(
-    height: 32, 
-    width: 1, 
-    color: REGISTheme.divider
-  );
+  Widget _divider() =>
+      Container(height: 32, width: 1, color: REGISTheme.divider);
 
   void _confirmLogout(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: REGISTheme.surface,
-        title: const Text('Sair', style: TextStyle(color: REGISTheme.textPrimary)),
+        title: const Text(
+          'Sair',
+          style: TextStyle(color: REGISTheme.textPrimary),
+        ),
         content: const Text(
           'Tem certeza que deseja sair da sua conta?',
           style: TextStyle(color: REGISTheme.textSecondary),
@@ -175,15 +229,15 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar', style: TextStyle(color: REGISTheme.textSecondary)),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: REGISTheme.textSecondary),
+            ),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const Login()),
-                (route) => false,
-              );
+            onPressed: () async {
+              final profile = Profile();
+              await profile.logout(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: REGISTheme.danger),
             child: const Text('Sair'),
@@ -222,11 +276,8 @@ class _StatItem extends StatelessWidget {
           ],
         ),
         Text(
-          label, 
-          style: TextStyle(
-            color: REGISTheme.textSecondary, 
-            fontSize: 12
-          )
+          label,
+          style: TextStyle(color: REGISTheme.textSecondary, fontSize: 12),
         ),
       ],
     );
@@ -250,7 +301,8 @@ class _InfoCard extends StatelessWidget {
           return Column(
             children: [
               e.value,
-              if (e.key < children.length - 1) const Divider(color: REGISTheme.divider, height: 1),
+              if (e.key < children.length - 1)
+                const Divider(color: REGISTheme.divider, height: 1),
             ],
           );
         }).toList(),
@@ -264,7 +316,11 @@ class _ProfileRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _ProfileRow({required this.icon, required this.label, required this.value});
+  const _ProfileRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -274,19 +330,14 @@ class _ProfileRow extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: REGISTheme.textSecondary),
           const SizedBox(width: 12),
-          Text(
-            label, 
-            style: TextStyle(
-              color: REGISTheme.textSecondary
-            )
-          ),
+          Text(label, style: TextStyle(color: REGISTheme.textSecondary)),
           const Spacer(),
           Text(
             value,
             style: TextStyle(
-              color: REGISTheme.textPrimary, 
-              fontWeight: FontWeight.w500
-            )
+              color: REGISTheme.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -300,7 +351,12 @@ class _SettingRow extends StatelessWidget {
   final Color? color;
   final VoidCallback? onTap;
 
-  const _SettingRow({required this.icon, required this.label, this.color, this.onTap});
+  const _SettingRow({
+    required this.icon,
+    required this.label,
+    this.color,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -316,7 +372,11 @@ class _SettingRow extends StatelessWidget {
             const SizedBox(width: 12),
             Text(label, style: TextStyle(color: c)),
             const Spacer(),
-            Icon(Icons.chevron_right, size: 18, color: color ?? REGISTheme.textSecondary),
+            Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: color ?? REGISTheme.textSecondary,
+            ),
           ],
         ),
       ),
