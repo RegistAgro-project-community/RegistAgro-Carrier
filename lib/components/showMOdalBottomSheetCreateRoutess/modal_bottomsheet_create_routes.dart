@@ -4,7 +4,7 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:registagrodriver/models/vehicle/vehicle_model.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
-const _typologies = ['Pickup', 'Carrinha', 'Camião'];
+const _typologies = ['Pickup', 'Carrinha-Aberta','Carrinha-Fechada', 'Camião-Aberto', 'Camião-Fechado'];
 
 Future<VehicleModel?> showCreateVehicle(BuildContext context) {
   return _showVehicleDialog(context, existingVehicle: null);

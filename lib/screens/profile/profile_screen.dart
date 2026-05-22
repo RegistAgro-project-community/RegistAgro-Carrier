@@ -20,7 +20,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  SizedBox(height: 50,),
+                  SizedBox(height: 50),
                   Stack(
                     children: [
                       Container(
@@ -28,7 +28,10 @@ class ProfileScreen extends StatelessWidget {
                         height: 80,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: REGISTheme.accent, width: 3),
+                          border: Border.all(
+                            color: REGISTheme.accent,
+                            width: 3,
+                          ),
                           // ignore: deprecated_member_use
                           color: REGISTheme.accent.withOpacity(0.2),
                         ),
@@ -61,7 +64,11 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       _StatItem(value: '47', label: 'Viagens'),
                       _divider(),
-                      _StatItem(value: '4.8', label: 'Avaliação', icon: Icons.star_rounded),
+                      _StatItem(
+                        value: '4.8',
+                        label: 'Avaliação',
+                        icon: Icons.star_rounded,
+                      ),
                     ],
                   ),
                 ],
@@ -72,61 +79,36 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Informações Pessoais',
+                  const Text(
+                    'Informações Pessoais',
                     style: TextStyle(
                       color: REGISTheme.textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      letterSpacing: 1
-                    )
-                  ),
-                  const SizedBox(height: 8),
-                  _InfoCard(
-                    children: [
-                      _ProfileRow(
-                        icon: Icons.person_outline, 
-                        label: 'Nome', 
-                        value: currentUser.name
-                      ),
-                      _ProfileRow(
-                        icon: Icons.email_outlined, 
-                        label: 'Email', 
-                        value: currentUser.email
-                      ),
-                      _ProfileRow(
-                        icon: Icons.phone_outlined, 
-                        label: 'Telefone', 
-                        value: currentUser.phone
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  const Text('Configurações',
-                    style: TextStyle(
-                        color: REGISTheme.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1
-                      )
+                      letterSpacing: 1,
                     ),
+                  ),
                   const SizedBox(height: 8),
                   _InfoCard(
                     children: [
-                      _SettingRow(
-                        icon: Icons.edit_outlined, 
-                        label: 'Editar Perfil'
+                      _ProfileRow(
+                        icon: Icons.person_outline,
+                        label: 'Nome',
+                        value: currentUser.name,
                       ),
-                      _SettingRow(
-                        icon: Icons.lock_outline, 
-                        label: 'Alterar Senha'
+                      _ProfileRow(
+                        icon: Icons.email_outlined,
+                        label: 'Email',
+                        value: currentUser.email,
                       ),
-                      _SettingRow(
-                        icon: Icons.help_outline_rounded, 
-                        label: 'Ajuda e Suporte'
+                      _ProfileRow(
+                        icon: Icons.phone_outlined,
+                        label: 'Telefone',
+                        value: currentUser.phone,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 210),
                   _InfoCard(
                     children: [
                       _SettingRow(
@@ -142,8 +124,10 @@ class ProfileScreen extends StatelessWidget {
                     child: Text(
                       'RegistAgro v1.0.0 • Transport Information System',
                       style: TextStyle(
-                          // ignore: deprecated_member_use
-                          color: REGISTheme.textSecondary.withOpacity(0.5), fontSize: 11),
+                        // ignore: deprecated_member_use
+                        color: REGISTheme.textSecondary.withOpacity(0.5),
+                        fontSize: 11,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -156,18 +140,18 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _divider() => Container(
-    height: 32, 
-    width: 1, 
-    color: REGISTheme.divider
-  );
+  Widget _divider() =>
+      Container(height: 32, width: 1, color: REGISTheme.divider);
 
   void _confirmLogout(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: REGISTheme.surface,
-        title: const Text('Sair', style: TextStyle(color: REGISTheme.textPrimary)),
+        title: const Text(
+          'Sair',
+          style: TextStyle(color: REGISTheme.textPrimary),
+        ),
         content: const Text(
           'Tem certeza que deseja sair da sua conta?',
           style: TextStyle(color: REGISTheme.textSecondary),
@@ -175,7 +159,10 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar', style: TextStyle(color: REGISTheme.textSecondary)),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: REGISTheme.textSecondary),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -222,11 +209,8 @@ class _StatItem extends StatelessWidget {
           ],
         ),
         Text(
-          label, 
-          style: TextStyle(
-            color: REGISTheme.textSecondary, 
-            fontSize: 12
-          )
+          label,
+          style: TextStyle(color: REGISTheme.textSecondary, fontSize: 12),
         ),
       ],
     );
@@ -250,7 +234,8 @@ class _InfoCard extends StatelessWidget {
           return Column(
             children: [
               e.value,
-              if (e.key < children.length - 1) const Divider(color: REGISTheme.divider, height: 1),
+              if (e.key < children.length - 1)
+                const Divider(color: REGISTheme.divider, height: 1),
             ],
           );
         }).toList(),
@@ -264,7 +249,11 @@ class _ProfileRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _ProfileRow({required this.icon, required this.label, required this.value});
+  const _ProfileRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -274,19 +263,14 @@ class _ProfileRow extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: REGISTheme.textSecondary),
           const SizedBox(width: 12),
-          Text(
-            label, 
-            style: TextStyle(
-              color: REGISTheme.textSecondary
-            )
-          ),
+          Text(label, style: TextStyle(color: REGISTheme.textSecondary)),
           const Spacer(),
           Text(
             value,
             style: TextStyle(
-              color: REGISTheme.textPrimary, 
-              fontWeight: FontWeight.w500
-            )
+              color: REGISTheme.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -300,7 +284,12 @@ class _SettingRow extends StatelessWidget {
   final Color? color;
   final VoidCallback? onTap;
 
-  const _SettingRow({required this.icon, required this.label, this.color, this.onTap});
+  const _SettingRow({
+    required this.icon,
+    required this.label,
+    this.color,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -316,7 +305,11 @@ class _SettingRow extends StatelessWidget {
             const SizedBox(width: 12),
             Text(label, style: TextStyle(color: c)),
             const Spacer(),
-            Icon(Icons.chevron_right, size: 18, color: color ?? REGISTheme.textSecondary),
+            Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: color ?? REGISTheme.textSecondary,
+            ),
           ],
         ),
       ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:registagrodriver/components/google_maps/location_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/Onboarding_screen/onboarding_screen.dart';
 
@@ -17,11 +19,16 @@ class TISApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TIS - Transport Information System',
-      theme: REGISTheme.theme,
-      debugShowCheckedModeBanner: false,
-      home: const OnboardingScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SourceLocationProvider()),
+      ],
+      child: MaterialApp(
+        title: 'RegistAgro - Transport Information System',
+        theme: REGISTheme.theme,
+        debugShowCheckedModeBanner: false,
+        home: const OnboardingScreen(),
+      ),
     );
   }
 }
