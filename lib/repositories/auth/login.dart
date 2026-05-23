@@ -14,7 +14,7 @@ Future<Map<String, String>> login(
   
   try {
     final res = await dio.post(
-      'https://api-registagro.onrender.com/auth/login',
+      'https://api-registagro.onrender.com/auth/login/carrier',
       data: data,
     );
 
