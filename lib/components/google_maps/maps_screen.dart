@@ -39,11 +39,34 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       if (!mounted) return;
       await loc.setDestination(widget.destino);
 
-      if (loc.currentLatLng != null) {
+      if (loc.currentLatLng != null && loc.destinationLatLng != null) {
+        final bounds = gmaps.LatLngBounds(
+          southwest: gmaps.LatLng(
+            loc.currentLatLng!.latitude < widget.destino.latitude
+                ? loc.currentLatLng!.latitude
+                : widget.destino.latitude,
+            loc.currentLatLng!.longitude < widget.destino.longitude
+                ? loc.currentLatLng!.longitude
+                : widget.destino.longitude,
+          ),
+          northeast: gmaps.LatLng(
+            loc.currentLatLng!.latitude > widget.destino.latitude
+                ? loc.currentLatLng!.latitude
+                : widget.destino.latitude,
+            loc.currentLatLng!.longitude > widget.destino.longitude
+                ? loc.currentLatLng!.longitude
+                : widget.destino.longitude,
+          ),
+        );
+        _mapController?.animateCamera(
+          gmaps.CameraUpdate.newLatLngBounds(bounds, 80),
+        );
+      } else if (loc.currentLatLng != null) {
         _mapController?.animateCamera(
           gmaps.CameraUpdate.newLatLngZoom(loc.currentLatLng!, 15),
         );
       }
+
       _slideController.forward();
     });
   }
@@ -56,10 +79,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         points: [loc.currentLatLng!, loc.destinationLatLng!],
         color: Colors.blue.shade700,
         width: 5,
-        patterns: [
-          gmaps.PatternItem.dash(30),
-          gmaps.PatternItem.gap(15),
-        ],
       ),
     };
   }
@@ -98,8 +117,34 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
   void _onMapTap(gmaps.LatLng latLng, SourceLocationProvider loc) async {
     HapticFeedback.lightImpact();
-    await loc.updateLocation(latLng);
-    _mapController?.animateCamera(gmaps.CameraUpdate.newLatLng(latLng));
+
+    if (_modoDestino) {
+      await loc.setDestination(latLng);
+
+      if (loc.currentLatLng != null) {
+        final bounds = gmaps.LatLngBounds(
+          southwest: gmaps.LatLng(
+            latLng.latitude < loc.currentLatLng!.latitude
+                ? latLng.latitude
+                : loc.currentLatLng!.latitude,
+            latLng.longitude < loc.currentLatLng!.longitude
+                ? latLng.longitude
+                : loc.currentLatLng!.longitude,
+          ),
+          northeast: gmaps.LatLng(
+            latLng.latitude > loc.currentLatLng!.latitude
+                ? latLng.latitude
+                : loc.currentLatLng!.latitude,
+            latLng.longitude > loc.currentLatLng!.longitude
+                ? latLng.longitude
+                : loc.currentLatLng!.longitude,
+          ),
+        );
+        _mapController?.animateCamera(
+          gmaps.CameraUpdate.newLatLngBounds(bounds, 80),
+        );
+      }
+    }
   }
 
   @override
@@ -127,17 +172,23 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 zoomControlsEnabled: false,
                 mapToolbarEnabled: false,
                 compassEnabled: false,
+                scrollGesturesEnabled: true,
+                zoomGesturesEnabled: true,
+                rotateGesturesEnabled: true,
+                tiltGesturesEnabled: true,
                 onTap: (latLng) => _onMapTap(latLng, loc),
               ),
             ),
             if (loc.isLoading)
               Positioned.fill(
-                child: Container(
-                  color: Colors.white.withOpacity(0.8),
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.black,
-                      strokeWidth: 2.5,
+                child: IgnorePointer(
+                  child: Container(
+                    color: Colors.white.withOpacity(0.8),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.black,
+                        strokeWidth: 2.5,
+                      ),
                     ),
                   ),
                 ),
@@ -175,12 +226,27 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 ],
               ),
             ),
-
             Positioned(
-              bottom: 24 + bottomPad,
+              bottom: 30 + bottomPad,
               right: 16,
               child: Column(
                 children: [
+                  _CircleButton(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      _mapController?.animateCamera(gmaps.CameraUpdate.zoomIn());
+                    },
+                    child: const Icon(Icons.add, size: 20, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 10),
+                  _CircleButton(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      _mapController?.animateCamera(gmaps.CameraUpdate.zoomOut());
+                    },
+                    child: const Icon(Icons.remove, size: 20, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 10),
                   _CircleButton(
                     onTap: () async {
                       HapticFeedback.lightImpact();
@@ -193,20 +259,11 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     },
                     child: const Icon(Icons.my_location, size: 20, color: Colors.black87),
                   ),
-                  const SizedBox(height: 12),
-                  if (loc.destinationLatLng != null)
-                    _CircleButton(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        loc.clearDestination();
-                      },
-                      child: const Icon(Icons.close, size: 20, color: Colors.red),
-                    ),
                 ],
               ),
             ),
             Positioned(
-              bottom: 24 + bottomPad,
+              bottom: 30 + bottomPad,
               left: 16,
               child: SlideTransition(
                 position: _slideAnimation,
@@ -228,13 +285,29 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         label: 'Origem',
                         ativo: !_modoDestino,
                         cor: Colors.green.shade600,
-                        onTap: () => setState(() => _modoDestino = false),
+                        onTap: () {
+                          setState(() => _modoDestino = false);
+                          final loc = context.read<SourceLocationProvider>();
+                          if (loc.currentLatLng != null) {
+                            _mapController?.animateCamera(
+                              gmaps.CameraUpdate.newLatLngZoom(loc.currentLatLng!, 16),
+                            );
+                          }
+                        },
                       ),
                       _ToggleBtn(
                         label: 'Destino',
                         ativo: _modoDestino,
                         cor: Colors.red.shade600,
-                        onTap: () => setState(() => _modoDestino = true),
+                        onTap: () {
+                          setState(() => _modoDestino = true);
+                          final loc = context.read<SourceLocationProvider>();
+                          if (loc.destinationLatLng != null) {
+                            _mapController?.animateCamera(
+                              gmaps.CameraUpdate.newLatLngZoom(loc.destinationLatLng!, 16),
+                            );
+                          }
+                        },
                       ),
                     ],
                   ),

@@ -84,7 +84,7 @@ class SourceLocationProvider extends ChangeNotifier {
       final placemarks = await placemarkFromCoordinates(
         latLng.latitude,
         latLng.longitude,
-      );
+      ).timeout(const Duration(seconds: 5));
       if (placemarks.isEmpty) return 'Local desconhecido';
       final p = placemarks.first;
       final partes = <String>[];
@@ -94,7 +94,8 @@ class SourceLocationProvider extends ChangeNotifier {
       if (p.administrativeArea?.isNotEmpty == true) partes.add(p.administrativeArea!);
       return partes.isNotEmpty ? partes.join(', ') : 'Local desconhecido';
     } catch (_) {
-      return 'Local';
+      // ignore: avoid_catches_without_on_clauses
+      return '${latLng.latitude.toStringAsFixed(4)}, ${latLng.longitude.toStringAsFixed(4)}';
     }
   }
 }

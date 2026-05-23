@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:registagrodriver/repositories/profile.dart';
 import 'package:registagrodriver/screens/profile/profile_class.dart';
+import 'package:registagrodriver/screens/travels/travels.dart';
 import 'package:registagrodriver/screens/vehicle/vehicle_screen.dart';
-import '../home/home_screen.dart';
 import '../profile/profile_screen.dart';
 
 class MainNavScreen extends StatefulWidget {
@@ -27,9 +27,9 @@ class _MainNavScreenState extends State<MainNavScreen> {
     adress: "Golf 2",
     balance: "0Kz"
   );
-
+  
   List<Widget> get _screens => [
-    HomeScreen(name: userData.name),
+    const MyTravels(),
     const VehiclesAvailable(),
     ProfileScreen(
       name: name,
@@ -113,6 +113,11 @@ class _MainNavScreenState extends State<MainNavScreen> {
               icon: Icon(Icons.home_outlined),
               activeIcon: Icon(Icons.home_rounded),
               label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.route_outlined),
+              activeIcon: Icon(Icons.route_rounded),
+              label: 'Viagens',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.car_repair),
