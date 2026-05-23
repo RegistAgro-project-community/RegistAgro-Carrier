@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:registagrodriver/screens/travels/travels.dart';
 import 'package:registagrodriver/screens/vehicle/vehicle_screen.dart';
 import '../home/home_screen.dart';
 import '../profile/profile_screen.dart';
@@ -16,6 +17,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
+    const MyTravels(),
     const VehiclesAvailable(),
     const ProfileScreen(),
   ];
@@ -60,6 +62,11 @@ class _MainNavScreenState extends State<MainNavScreen> {
               icon: Icon(Icons.home_outlined),
               activeIcon: Icon(Icons.home_rounded),
               label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.route_outlined),
+              activeIcon: Icon(Icons.route_rounded),
+              label: 'Viagens',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.car_repair),

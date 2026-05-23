@@ -40,7 +40,7 @@ void showFollwoUp(BuildContext context) {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            'Follow Up',
+                            'Acompanhar Corrida',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -64,39 +64,37 @@ void showFollwoUp(BuildContext context) {
                         padding: EdgeInsets.zero,
                         children: [
                           SizedBox(
-                            height: totalHeight * 0.75,
-                            child: MapScreen(
-                              destino: const gmaps.LatLng(-8.7922, 13.2205,), // Ilha de Luanda
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius:
-                                    BorderRadius.circular(14),
-                              ),
-                              child: const Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Detalhes da corrida',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(height: 10),
-                                  Text(
-                                    'Acompanhe a localização em tempo real.',
-                                  ),
-                                ],
+                            height: totalHeight * 0.90,
+                            child: SafeArea(
+                              child: MapScreen(
+                                destino: const gmaps.LatLng(-8.7922, 13.2205,), // Ilha de Luanda
                               ),
                             ),
                           ),
+                          // Padding(
+                          //   padding: const EdgeInsets.symmetric(horizontal: 16),
+                          //   child: Container(
+                          //     padding: const EdgeInsets.all(14),
+                          //     decoration: BoxDecoration(
+                          //       color: Colors.grey.shade100,
+                          //       borderRadius: BorderRadius.circular(14),
+                          //     ),
+                          //     child: const Column(
+                          //       crossAxisAlignment: CrossAxisAlignment.start,
+                          //       children: [
+                          //         Text(
+                          //           'Detalhes da corrida',
+                          //           style: TextStyle(
+                          //             fontSize: 16,
+                          //             fontWeight: FontWeight.bold,
+                          //           ),
+                          //         ),
+                          //         SizedBox(height: 10),
+                          //         Text('Acompanhe a localização em tempo real.',),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),
