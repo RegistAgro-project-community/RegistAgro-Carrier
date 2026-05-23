@@ -5,6 +5,8 @@ import 'package:registagrodriver/auth/otpscreen/otp_screnn.dart';
 import 'package:registagrodriver/auth/signup/sign_up.dart';
 import 'package:registagrodriver/screens/MainNavScreen/main_nav_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:registagrodriver/components/google_maps/location_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/Onboarding_screen/onboarding_screen.dart';
 
@@ -32,18 +34,23 @@ class TISApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TIS - Transport Information System',
-      theme: REGISTheme.theme,
-      debugShowCheckedModeBanner: false,
-      home: const OnboardingScreen(),
-      initialRoute: initialRoute,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SourceLocationProvider()),
+      ],
+      child: MaterialApp(
+        title: 'RegistAgro - Transport Information System',
+        theme: REGISTheme.theme,
+        debugShowCheckedModeBanner: false,
+        home: const OnboardingScreen(),
+        initialRoute: initialRoute,
       onGenerateRoute: (settings) {
         _saveRoute(settings.name ?? "/");
         return MaterialPageRoute(
           builder: (context) => _getPage(settings.name),
         );
       },
+      ),
     );
   }
 

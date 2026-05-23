@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:registagrodriver/components/show-follow-up-bottomSheet/follow_up.dart';
+import 'package:registagrodriver/components/tirp_card/tirp_card.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
 // ignore: must_be_immutable
@@ -12,10 +14,32 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreen extends State<HomeScreen> {
   bool isLoading = false;
+  String value = "00,0";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: REGISTheme.surface,
+        title: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Total: ${value}kz",
+                style: TextStyle(
+                  fontSize: 18,
+                ),
+              ),
+              CircleAvatar(
+                radius: 20,      
+              )
+            ],
+          ),
+        )
+        
+      ),
       body: SingleChildScrollView(
         child: SafeArea(
           child: Container(
@@ -95,256 +119,15 @@ class _HomeScreen extends State<HomeScreen> {
                   ),
                 ),
                 SizedBox(height: 20),
-                Container(
-                  height: 335,
-                  width: double.infinity,
-                  padding: EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: const Color.fromARGB(255, 231, 231, 231),
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    spacing: 20,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            spacing: 8,
-                            children: [
-                              CircleAvatar(
-                                backgroundColor: const Color.fromARGB(
-                                  255,
-                                  214,
-                                  213,
-                                  213,
-                                ),
-                                child: Icon(Icons.person, color: Colors.grey),
-                              ),
-                              Text(
-                                "Fazenda Filomena",
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: REGISTheme.primary,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(100),
-                              color: const Color.fromARGB(255, 223, 222, 222),
-                            ),
-                            child: Text(
-                              "Pendente",
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: REGISTheme.textSecondary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Column(
-                            children: [
-                              Icon(
-                                Icons.location_on,
-                                size: 20,
-                                color: Colors.grey,
-                              ),
-                              Column(
-                                spacing: 5,
-                                children: List.generate(7, (int index) {
-                                  return Container(
-                                    height: 5,
-                                    width: 1,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey,
-                                    ),
-                                  );
-                                }),
-                              ),
-                              Icon(
-                                Icons.place_outlined,
-                                size: 20,
-                                color: Colors.grey,
-                              ),
-                            ],
-                          ),
-                          Column(
-                            spacing: 30,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Column(
-                                spacing: 2,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "De onde vais sair ?",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  Text(
-                                    "AGT - Administração Geral Tributária",
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Column(
-                                spacing: 2,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Para onde vamos ?",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  Text(
-                                    "TIS TECH ANGOLA",
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            children: [
-                              Row(
-                                spacing: 3,
-                                children: [
-                                  Icon(
-                                    Icons.circle,
-                                    color: Colors.grey,
-                                    size: 8,
-                                  ),
-                                  Text(
-                                    "Quantidade",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "320kg/cx",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Row(
-                                spacing: 3,
-                                children: [
-                                  Icon(
-                                    Icons.circle,
-                                    color: Colors.grey,
-                                    size: 8,
-                                  ),
-                                  Text(
-                                    "Produto",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Tomate",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Row(
-                                spacing: 3,
-                                children: [
-                                  Icon(
-                                    Icons.circle,
-                                    color: Colors.grey,
-                                    size: 8,
-                                  ),
-                                  Text(
-                                    "Oferta",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "88.000kz",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: REGISTheme.surface,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(double.infinity, 45),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        child: Text("Iniciar viagem"),
-                      ),
-                    ],
-                  ),
+                TripCard(
+                  fazenda: 'Fazenda Filomena',
+                  status: 'Pendente',
+                  origem: 'AGT - Administração Geral Tributária',
+                  destino: 'TIS TECH ANGOLA',
+                  quantidade: '320kg/cx',
+                  produto: 'Tomate',
+                  oferta: '88.000kz',
+                  onIniciar: () => showFollwoUp(context)       
                 ),
                 SizedBox(height: 20),
                 Column(
@@ -409,7 +192,16 @@ class _HomeScreen extends State<HomeScreen> {
                                 ),
                               ),
                               TextButton(
-                                onPressed: () {},
+                                onPressed: () => {
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) => 
+                                  //     const MapScreen(
+                                  //       destino: gmaps.LatLng(-8.7922, 13.2205), // Ilha de Luanda 
+                                  //     )),
+                                  // )
+                                },
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
                                 ),
