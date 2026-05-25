@@ -11,6 +11,7 @@ class ProfileScreen extends StatefulWidget {
   final String? province;
   final String? adress;
   final String? balance;
+  final String? totalTrip;
 
   const ProfileScreen({
     super.key,
@@ -20,7 +21,8 @@ class ProfileScreen extends StatefulWidget {
     this.photo,
     this.province,
     this.adress,
-    this.balance
+    this.balance,
+    this.totalTrip
   });
 
   @override
@@ -35,7 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     bio: "Seu pedido nosso objectivo",
     province: "Luanda",
     adress: "Golf 2",
-    balance: "0Kz"
+    balance: "0Kz",
   );
 
   @override
@@ -47,8 +49,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       bio: user.bio,
       province: widget.province ?? user.province,
       adress: widget.adress ?? user.adress,
-      photoPath: widget.photo,
-      balance: widget.balance ?? user.balance
+      profile: widget.photo,
+      balance: widget.balance ?? user.balance,
     );
 
     return Scaffold(
@@ -79,13 +81,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: REGISTheme.accent.withOpacity(0.2),
                         ),
                         child: Center(
-                          child: Text(
-                            user.name,
-                            style: const TextStyle(
-                              color: REGISTheme.accentLight,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          child: CircleAvatar(
+                            radius: 42,
+                            backgroundColor: Colors.white,
+                            backgroundImage: user.profile != ""
+                                ? NetworkImage(user.profile ?? "")
+                                : null,
+                            child: user.profile == ""
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 52,
+                                    color: REGISTheme.accentLight,
+                                  )
+                                : null,
                           ),
                         ),
                       ),
@@ -105,7 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _StatItem(value: '47', label: 'Viagens'),
+                      _StatItem(value: "${widget.totalTrip ?? 0}", label: 'Viagens'),
                       _divider(),
                       _StatItem(
                         value: user.balance,

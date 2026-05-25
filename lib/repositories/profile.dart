@@ -102,7 +102,7 @@ class Profile {
         bio: "bio",
         province: data['province'],
         adress: data['adress'],
-        photoPath: data['profile'],
+        profile: data['profile'],
         balance: res.data["balance"]
       );
     } on DioException catch (e) {

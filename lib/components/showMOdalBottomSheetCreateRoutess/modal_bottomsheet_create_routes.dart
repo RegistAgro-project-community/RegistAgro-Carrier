@@ -1,44 +1,89 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:registagrodriver/models/vehicle/vehicle_model.dart';
+import 'package:registagrodriver/repositories/model/transportType.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
-const _typologies = ['Pickup', 'Carrinha-Aberta','Carrinha-Fechada', 'Camião-Aberto', 'Camião-Fechado'];
+const _typologies = [
+  'frigorifico',
+  'fechado',
+  'aberto',
+  'fechado',
+  "aberto_coberto",
+];
 
-Future<VehicleModel?> showCreateVehicle(BuildContext context) {
+Future<Vehicle?> showCreateVehicle(BuildContext context) {
   return _showVehicleDialog(context, existingVehicle: null);
 }
 
-Future<VehicleModel?> showEditVehicle(
+Future<Vehicle?> showEditVehicle(
   BuildContext context,
-  VehicleModel existingVehicle,
+  Vehicle existingVehicle,
 ) {
   return _showVehicleDialog(context, existingVehicle: existingVehicle);
 }
 
-Future<VehicleModel?> _showVehicleDialog(
+Future<Vehicle?> _showVehicleDialog(
   BuildContext context, {
-  VehicleModel? existingVehicle,
+  Vehicle? existingVehicle,
 }) {
   final isEditing = existingVehicle != null;
   final formKey = GlobalKey<FormState>();
+  final picker = ImagePicker();
 
-  final brandController = TextEditingController(text: existingVehicle?.brand ?? '');
-  final modelController = TextEditingController(text: existingVehicle?.model ?? '');
-  final colorController = TextEditingController(text: existingVehicle?.color ?? '');
-  final plateController = TextEditingController(text: existingVehicle?.plate ?? '');
-  final yearController =  TextEditingController(text: existingVehicle?.year ?? '');
-  final capacityController = TextEditingController(text: existingVehicle?.capacity ?? '');
-  final selectedTypology = ValueNotifier<String?>(existingVehicle?.typology);
+  final brandController = TextEditingController(
+    text: existingVehicle?.brand ?? '',
+  );
+  final plateController = TextEditingController(
+    text: existingVehicle?.plate ?? '',
+  );
+  final capacityController = TextEditingController(
+    text: existingVehicle?.capacity ?? '',
+  );
+  final selectedTypology = ValueNotifier<String?>(
+    existingVehicle?.type?.isNotEmpty == true ? existingVehicle!.type : null,
+  );
+  final photoController = TextEditingController(text: existingVehicle?.photo);
+  final selectedImage = ValueNotifier<File?>(null);
 
-  return showDialog<VehicleModel>(
+  void _selectImgage() async {
+    try {
+      final XFile? pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 1200,
+        maxHeight: 1200,
+      );
+
+      if (pickedFile != null) {
+        selectedImage.value = File(pickedFile.path);
+        photoController.text = pickedFile.path;
+      }
+    } catch (e) {
+      print("Erro ao selecionar imagem: $e");
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Não foi possível abrir a galeria. Tente novamente."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  return showDialog<Vehicle>(
     context: context,
     builder: (_) => KeyboardVisibilityBuilder(
       builder: (context, isKeyboardVisible) {
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             padding: EdgeInsets.symmetric(
@@ -57,7 +102,9 @@ Future<VehicleModel?> _showVehicleDialog(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              isEditing ? 'Editar veículo' : 'Adicionar veículo',
+                              isEditing
+                                  ? 'Editar veículo'
+                                  : 'Adicionar veículo',
                               style: TextStyle(
                                 color: REGISTheme.textPrimary,
                                 fontSize: 18,
@@ -66,7 +113,9 @@ Future<VehicleModel?> _showVehicleDialog(
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              isEditing ? 'Actualize os dados do veículo' : 'Preencha os dados do novo veículo',
+                              isEditing
+                                  ? 'Actualize os dados do veículo'
+                                  : 'Preencha os dados do novo veículo',
                               style: TextStyle(color: REGISTheme.textSecondary),
                             ),
                           ],
@@ -80,6 +129,58 @@ Future<VehicleModel?> _showVehicleDialog(
                     ],
                   ),
                   const SizedBox(height: 20),
+
+                  Center(
+                    child: GestureDetector(
+                      onTap: () => _selectImgage(),
+                      child: ValueListenableBuilder<File?>(
+                        valueListenable: selectedImage,
+                        builder: (context, file, _) {
+                          return Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.grey.shade300,
+                                width: 3,
+                              ),
+                              image: (file != null)
+                                  ? DecorationImage(
+                                      image: FileImage(file),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : (existingVehicle?.photo?.isNotEmpty == true)
+                                  ? DecorationImage(
+                                      image: NetworkImage(
+                                        existingVehicle!.photo!,
+                                      ),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
+                            ),
+                            child:
+                                (file == null &&
+                                    existingVehicle?.photo?.isEmpty != false)
+                                ? const Icon(
+                                    Icons.camera_alt,
+                                    size: 40,
+                                    color: Colors.grey,
+                                  )
+                                : null,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Center(
+                    child: Text(
+                      "Toque para alterar a foto",
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
                   Form(
                     key: formKey,
@@ -96,43 +197,43 @@ Future<VehicleModel?> _showVehicleDialog(
                                 validator: _required('Marca é obrigatória'),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildField(
-                                controller: modelController,
-                                label: 'Modelo',
-                                hint: 'Ex: Hiace',
-                                icon: Icons.car_repair,
-                                validator: _required('Modelo é obrigatório'),
-                              ),
-                            ),
                           ],
-                        ),
-                        const SizedBox(height: 14),
-                        _buildField(
-                          controller: colorController,
-                          label: 'Cor',
-                          hint: 'Ex: Branco',
-                          icon: Icons.palette_outlined,
-                          validator: _required('Cor é obrigatória'),
                         ),
                         const SizedBox(height: 14),
 
                         ValueListenableBuilder<String?>(
                           valueListenable: selectedTypology,
-                          builder: (context, typology, _) {
+                          builder: (context, currentValue, _) {
                             return DropdownButtonFormField<String>(
-                              value: typology,
+                              value: currentValue,
+                              isExpanded: true,
                               decoration: InputDecoration(
-                                labelText: 'Tipologia',
-                                prefixIcon: const Icon(Icons.category_outlined,size: 20),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                labelText: 'Tipo',
+                                prefixIcon: const Icon(
+                                  Icons.category_outlined,
+                                  size: 20,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 12,
+                                ),
                               ),
-                              hint: const Text('Seleccione a tipologia'),
-                              items: _typologies.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                              hint: const Text('Seleccione o tipo'),
+                              items: _typologies
+                                  .map(
+                                    (t) => DropdownMenuItem(
+                                      value: t,
+                                      child: Text(t),
+                                    ),
+                                  )
+                                  .toList(),
                               onChanged: (val) => selectedTypology.value = val,
-                              validator: (val) => val == null ? 'Tipologia é obrigatória' : null,
+                              validator: (val) => val == null || val.isEmpty
+                                  ? "O tipo é obrigatório"
+                                  : null,
                             );
                           },
                         ),
@@ -140,7 +241,7 @@ Future<VehicleModel?> _showVehicleDialog(
                         _buildField(
                           controller: plateController,
                           label: 'Matrícula',
-                          hint: 'Ex: LD-00-00-AA',
+                          hint: 'Ex: LDA-00-00-AA',
                           icon: Icons.credit_card_outlined,
                           inputFormatters: [
                             TextInputFormatter.withFunction(
@@ -154,20 +255,6 @@ Future<VehicleModel?> _showVehicleDialog(
                         const SizedBox(height: 14),
                         Row(
                           children: [
-                            Expanded(
-                              child: _buildField(
-                                controller: yearController,
-                                label: 'Ano',
-                                hint: 'Ex: 2020',
-                                icon: Icons.calendar_today_outlined,
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(4),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
                             Expanded(
                               child: _buildField(
                                 controller: capacityController,
@@ -188,15 +275,23 @@ Future<VehicleModel?> _showVehicleDialog(
                           child: ElevatedButton.icon(
                             onPressed: () {
                               if (formKey.currentState!.validate()) {
-                                final vehicle = VehicleModel(
-                                  id: existingVehicle?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                                final vehicle = Vehicle(
+                                  id:
+                                      existingVehicle?.id ??
+                                      DateTime.now().millisecondsSinceEpoch
+                                          .toString(),
                                   brand: brandController.text.trim(),
-                                  model: modelController.text.trim(),
-                                  color: colorController.text.trim(),
-                                  typology: selectedTypology.value!,
-                                  plate: plateController.text.trim().isEmpty ? null : plateController.text.trim(),
-                                  year: yearController.text.trim().isEmpty ? null : yearController.text.trim(),
-                                  capacity: capacityController.text.trim().isEmpty ? null : capacityController.text.trim(),
+                                  plate: plateController.text.trim().isEmpty
+                                      ? null
+                                      : plateController.text.trim(),
+                                  capacity:
+                                      capacityController.text.trim().isEmpty
+                                      ? null
+                                      : capacityController.text.trim(),
+                                  photo: photoController.text.trim().isEmpty
+                                      ? null
+                                      : photoController.text.trim(),
+                                  type: selectedTypology.value,
                                 );
                                 Navigator.of(context).pop(vehicle);
                               }
@@ -207,7 +302,9 @@ Future<VehicleModel?> _showVehicleDialog(
                               color: Colors.white,
                             ),
                             label: Text(
-                              isEditing ? 'Salvar alterações' : 'Adicionar Veículo',
+                              isEditing
+                                  ? 'Salvar alterações'
+                                  : 'Adicionar Veículo',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,

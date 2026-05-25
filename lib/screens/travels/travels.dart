@@ -1,97 +1,15 @@
 import 'package:animated_segmented_tab_control/animated_segmented_tab_control.dart';
 import 'package:flutter/material.dart';
+import 'package:registagrodriver/repositories/model/transportType.dart';
 import 'package:registagrodriver/screens/travels/all_travels/all_tavels.dart';
 import 'package:registagrodriver/screens/travels/confirmed_travel/confirmedTravels.dart';
 import 'package:registagrodriver/screens/travels/finish_travels/finish_travels.dart';
 import 'package:registagrodriver/screens/travels/pending_travels/pending_travels.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
-  final List<Map<String, String>> todasCorridas = [
-    {
-      'fazenda': 'Fazenda Filomena',
-      'status': 'Pendente',
-      'origem': 'AGT - Administração Geral Tributária',
-      'destino': 'TIS TECH ANGOLA',
-      'quantidade': '320kg/cx',
-      'produto': 'Tomate',
-      'oferta': '88.000kz',
-    },
-    {
-      'fazenda': 'Fazenda Bela Vista',
-      'status': 'Confirmado',
-      'origem': 'Mercado do Kinaxixi',
-      'destino': 'Porto de Luanda',
-      'quantidade': '150kg/cx',
-      'produto': 'Batata',
-      'oferta': '45.000kz',
-    },
-    {
-      'fazenda': 'Fazenda São João',
-      'status': 'Entregue',
-      'origem': 'Viana Industrial',
-      'destino': 'Mercado do Rocha Pinto',
-      'quantidade': '200kg/cx',
-      'produto': 'Cebola',
-      'oferta': '60.000kz',
-    },
-    {
-      'fazenda': 'Fazenda Santa Clara',
-      'status': 'Pendente',
-      'origem': 'Cacuaco - Zona Industrial',
-      'destino': 'Mercado do Rangel',
-      'quantidade': '180kg/cx',
-      'produto': 'Alface',
-      'oferta': '32.000kz',
-    },
-    {
-      'fazenda': 'Fazenda Verde Vida',
-      'status': 'Confirmado',
-      'origem': 'Talatona - Sul',
-      'destino': 'Supermercado Nosso Super',
-      'quantidade': '500kg/cx',
-      'produto': 'Mandioca',
-      'oferta': '120.000kz',
-    },
-    {
-      'fazenda': 'Fazenda Boa Esperança',
-      'status': 'Entregue',
-      'origem': 'Viana - Km 30',
-      'destino': 'Mercado do Benfica',
-      'quantidade': '250kg/cx',
-      'produto': 'Milho',
-      'oferta': '75.000kz',
-    },
-    {
-      'fazenda': 'Fazenda Horizonte',
-      'status': 'Pendente',
-      'origem': 'Luanda Sul - Condomínio',
-      'destino': 'Porto de Luanda',
-      'quantidade': '400kg/cx',
-      'produto': 'Feijão',
-      'oferta': '95.000kz',
-    },
-    {
-      'fazenda': 'Fazenda Nova Aurora',
-      'status': 'Confirmado',
-      'origem': 'Belas - Estrada Nacional',
-      'destino': 'Shoprite Talatona',
-      'quantidade': '300kg/cx',
-      'produto': 'Arroz',
-      'oferta': '110.000kz',
-    },
-    {
-      'fazenda': 'Fazenda Primavera',
-      'status': 'Entregue',
-      'origem': 'Catete - Interior',
-      'destino': 'Mercado do Kinaxixi',
-      'quantidade': '220kg/cx',
-      'produto': 'Banana',
-      'oferta': '55.000kz',
-    },
-  ];
-
 class MyTravels extends StatefulWidget {
-  const MyTravels({super.key});
+  final List<Transport> requests;
+  const MyTravels({super.key, required this.requests});
 
   @override
   State<MyTravels> createState() => _MyTravelsState();
@@ -105,6 +23,7 @@ class _MyTravelsState extends State<MyTravels> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: REGISTheme.surface,
           elevation: 0,
           title: const Text(
@@ -153,10 +72,22 @@ class _MyTravelsState extends State<MyTravels> {
         ),
         body: TabBarView(
           children: [
-            AllTab(corridas: todasCorridas),
-            PendingTab(corridas: todasCorridas.where((c) => c['status'] == 'Pendente').toList()),
-            ConfirmedTab(corridas: todasCorridas.where((c) => c['status'] == 'Confirmado').toList()),
-            FinishTravelsTab(corridas: todasCorridas.where((c) => c['status'] == 'Entregue').toList()),
+            AllTab(requests: widget.requests),
+            PendingTab(
+              requests: widget.requests
+                  .where((c) => c.status == 'pendente')
+                  .toList(),
+            ),
+            ConfirmedTab(
+              requests: widget.requests
+                  .where((c) => c.status == 'em_transporte' || c.status == "aguardando_coleta")
+                  .toList(),
+            ),
+            FinishTravelsTab(
+              requests: widget.requests
+                  .where((c) => c.status == 'entregue')
+                  .toList(),
+            ),
           ],
         ),
       ),

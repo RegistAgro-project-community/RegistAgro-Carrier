@@ -10,6 +10,7 @@ class TripCard extends StatefulWidget {
   final String produto;
   final String oferta;
   final VoidCallback onIniciar;
+  final String photo;
 
   const TripCard({
     super.key,
@@ -21,13 +22,15 @@ class TripCard extends StatefulWidget {
     required this.produto,
     required this.oferta,
     required this.onIniciar,
+    required this.photo
   });
 
   @override
   State<TripCard> createState() => _TripCardState();
 }
 
-class _TripCardState extends State<TripCard> with SingleTickerProviderStateMixin {
+class _TripCardState extends State<TripCard>
+    with SingleTickerProviderStateMixin {
   bool _expandido = false;
   bool _viagemIniciada = false;
   bool _viagemFinalizada = false;
@@ -35,8 +38,7 @@ class _TripCardState extends State<TripCard> with SingleTickerProviderStateMixin
   late Animation<double> _expandAnimation;
   late Animation<double> _rotateAnimation;
 
-  bool get _isPendente =>
-      widget.status.toLowerCase().trim() == 'pendente';
+  bool get _isPendente => widget.status.toLowerCase().trim() == 'pendente';
 
   @override
   void initState() {
@@ -45,9 +47,14 @@ class _TripCardState extends State<TripCard> with SingleTickerProviderStateMixin
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _expandAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-    _rotateAnimation = Tween<double>(begin: 0, end: 0.5)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _expandAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+    _rotateAnimation = Tween<double>(
+      begin: 0,
+      end: 0.5,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   void _toggle() {
@@ -84,7 +91,9 @@ class _TripCardState extends State<TripCard> with SingleTickerProviderStateMixin
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green.shade600,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: const Text('Finalizar'),
           ),
@@ -175,9 +184,19 @@ class _TripCardState extends State<TripCard> with SingleTickerProviderStateMixin
                 children: [
                   Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
+                        radius: 20,
                         backgroundColor: Color.fromARGB(255, 214, 213, 213),
-                        child: Icon(Icons.person, color: Colors.grey),
+                        backgroundImage: widget.photo != ""
+                            ? NetworkImage(widget.photo)
+                            : null,
+                        child: widget.photo == ""
+                            ? const Icon(
+                                Icons.person,
+                                size: 30,
+                                color: Colors.grey,
+                              )
+                            : null,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -194,7 +213,10 @@ class _TripCardState extends State<TripCard> with SingleTickerProviderStateMixin
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: _statusBgColor,
                           borderRadius: BorderRadius.circular(20),
@@ -211,7 +233,10 @@ class _TripCardState extends State<TripCard> with SingleTickerProviderStateMixin
                       const SizedBox(width: 8),
                       RotationTransition(
                         turns: _rotateAnimation,
-                        child: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                        child: const Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
@@ -223,7 +248,10 @@ class _TripCardState extends State<TripCard> with SingleTickerProviderStateMixin
             sizeFactor: _expandAnimation,
             child: Column(
               children: [
-                const Divider(height: 1, color: Color.fromARGB(255, 231, 231, 231)),
+                const Divider(
+                  height: 1,
+                  color: Color.fromARGB(255, 231, 231, 231),
+                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
                   child: Column(
@@ -232,23 +260,44 @@ class _TripCardState extends State<TripCard> with SingleTickerProviderStateMixin
                         children: [
                           Column(
                             children: [
-                              const Icon(Icons.location_on, size: 20, color: Colors.grey),
-                              Column(
-                                children: List.generate(7, (_) => Container(
-                                  height: 5, width: 1, color: Colors.grey,
-                                  margin: const EdgeInsets.symmetric(vertical: 1),
-                                )),
+                              const Icon(
+                                Icons.location_on,
+                                size: 20,
+                                color: Colors.grey,
                               ),
-                              const Icon(Icons.place_outlined, size: 20, color: Colors.grey),
+                              Column(
+                                children: List.generate(
+                                  7,
+                                  (_) => Container(
+                                    height: 5,
+                                    width: 1,
+                                    color: Colors.grey,
+                                    margin: const EdgeInsets.symmetric(
+                                      vertical: 1,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.place_outlined,
+                                size: 20,
+                                color: Colors.grey,
+                              ),
                             ],
                           ),
                           const SizedBox(width: 10),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _LocalInfo(label: 'De onde vais sair ?', valor: widget.origem),
+                              _LocalInfo(
+                                label: 'De onde vais sair ?',
+                                valor: widget.origem,
+                              ),
                               const SizedBox(height: 30),
-                              _LocalInfo(label: 'Para onde vamos ?', valor: widget.destino),
+                              _LocalInfo(
+                                label: 'Para onde vamos ?',
+                                valor: widget.destino,
+                              ),
                             ],
                           ),
                         ],
@@ -257,7 +306,10 @@ class _TripCardState extends State<TripCard> with SingleTickerProviderStateMixin
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _Metrica(label: 'Quantidade', valor: widget.quantidade),
+                          _Metrica(
+                            label: 'Quantidade',
+                            valor: widget.quantidade,
+                          ),
                           _Metrica(label: 'Produto', valor: widget.produto),
                           _Metrica(label: 'Oferta', valor: widget.oferta),
                         ],
@@ -273,91 +325,90 @@ class _TripCardState extends State<TripCard> with SingleTickerProviderStateMixin
             Padding(
               padding: const EdgeInsets.all(15),
               child: _viagemIniciada
-                ? Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: widget.onIniciar,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade600,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(0, 45),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.map_outlined, size: 18),
-                              SizedBox(width: 6),
-                              Text('Ver no mapa'),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _onFinalizarCorrida,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade600,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(0, 45),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.check_circle_outline, size: 18),
-                              SizedBox(width: 6),
-                              Text('Finalizar'),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                : ElevatedButton(
-                    onPressed: _onIniciarViagem,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: REGISTheme.surface,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 45),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  ? Row(
                       children: [
-                        Icon(Icons.play_arrow_rounded, size: 18),
-                        SizedBox(width: 8),
-                        Text('Iniciar viagem'),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: widget.onIniciar,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade600,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(0, 45),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.map_outlined, size: 18),
+                                SizedBox(width: 6),
+                                Text('Ver no mapa'),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _onFinalizarCorrida,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green.shade600,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(0, 45),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.check_circle_outline, size: 18),
+                                SizedBox(width: 6),
+                                Text('Finalizar'),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
+                    )
+                  : ElevatedButton(
+                      onPressed: _onIniciarViagem,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: REGISTheme.surface,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 45),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.play_arrow_rounded, size: 18),
+                          SizedBox(width: 8),
+                          Text('Iniciar viagem'),
+                        ],
+                      ),
                     ),
-                  ),
             ),
         ],
       ),
     );
   }
 }
-
 
 class _LocalInfo extends StatelessWidget {
   final String label;
@@ -369,8 +420,23 @@ class _LocalInfo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w400)),
-        Text(valor, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, color: Colors.black, fontWeight: FontWeight.w500)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            color: Colors.grey,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        Text(
+          valor,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.black,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ],
     );
   }
@@ -389,10 +455,23 @@ class _Metrica extends StatelessWidget {
           children: [
             const Icon(Icons.circle, color: Colors.grey, size: 8),
             const SizedBox(width: 3),
-            Text(label, style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.normal)),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
           ],
         ),
-        Text(valor, style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w500)),
+        Text(
+          valor,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ],
     );
   }

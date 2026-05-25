@@ -1,29 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/components/show-follow-up-bottomSheet/follow_up.dart';
 import 'package:registagrodriver/components/tirp_card/tirp_card.dart';
+import 'package:registagrodriver/repositories/model/transportType.dart';
 
 class PendingTab extends StatefulWidget {
-  final List<Map<String, String>> corridas;
-  const PendingTab({super.key, required this.corridas});
+  final List<Transport> requests;
+  const PendingTab({super.key, required this.requests});
 
   @override
   State<PendingTab> createState() => _PendingTabState();
 }
 
 class _PendingTabState extends State<PendingTab> {
-  late List<Map<String, String>> _corridas;
+  //late List<Transport> _corridas;
 
   @override
   void initState() {
     super.initState();
-    _corridas = List.from(widget.corridas);
+    //_corridas = List.from(widget.requests);
   }
 
-  void _removerCorrida(Map<String, String> corrida) {
+  /*void _removerCorrida(Transport corrida) {
     setState(() {
       _corridas.remove(corrida);
     });
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -32,57 +33,66 @@ class _PendingTabState extends State<PendingTab> {
       body: Column(
         children: [
           Expanded(
-            child: _corridas.isEmpty
-              ? const _EmptyState()
-              : ListView.separated(
-                  itemCount: _corridas.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 16),
-                  itemBuilder: (context, index) {
-                    final c = _corridas[index];
-                    return Dismissible(
-                      key: ValueKey('${c['fazenda']}_${c['oferta']}'),
-                      direction: DismissDirection.endToStart,
-                      onDismissed: (_) => _removerCorrida(c),
-                      background: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade400,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20),
-                        child: const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.delete_outline, color: Colors.white, size: 28),
-                            SizedBox(height: 4),
-                            Text(
-                              'Remover',
-                              style: TextStyle(
+            child: widget.requests.isEmpty
+                ? const _EmptyState()
+                : ListView.separated(
+                    itemCount: widget.requests.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 16),
+                    itemBuilder: (context, index) {
+                      final c = widget.requests[index];
+                      return Dismissible(
+                        key: ValueKey('${c.farm.name}_${c.order.earning}'),
+                        background: Container(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 15,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade400,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.delete_outline,
                                 color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                                size: 28,
                               ),
-                            ),
-                          ],
+                              SizedBox(height: 4),
+                              Text(
+                                'Remover',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                        child: TripCard(
-                          fazenda: c['fazenda']!,
-                          status: c['status']!,
-                          origem: c['origem']!,
-                          destino: c['destino']!,
-                          quantidade: c['quantidade']!,
-                          produto: c['produto']!,
-                          oferta: c['oferta']!,
-                          onIniciar: () => showFollwoUp(context),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 15,
+                          ),
+                          child: TripCard(
+                            fazenda: c.farm.name!,
+                            status: c.status!,
+                            origem: "${c.farm.province}, ${c.farm.adress}",
+                            destino: c.order.delivery_adress!,
+                            quantidade: c.order.qtd!,
+                            produto: c.order.productName!,
+                            oferta: c.order.earning!,
+                            photo: c.farm.profile!,
+                            onIniciar: () => showFollwoUp(context),
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

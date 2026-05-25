@@ -3,7 +3,7 @@ class UserModel {
   final String email;
   final String phone;
   final String bio;
-  final String? photoPath;
+  final String? profile;
   final String province;
   final String adress;
   final String balance;
@@ -16,7 +16,7 @@ class UserModel {
     required this.province,
     required this.adress,
     required this.balance,
-    this.photoPath,
+    this.profile,
   });
 
   UserModel copyWith({
@@ -26,7 +26,7 @@ class UserModel {
     String? province,
     String? adress,
     String? bio,
-    String? photoPath,
+    String? profile,
     String? balance
   }) {
     return UserModel(
@@ -34,7 +34,7 @@ class UserModel {
       email: email ?? this.email,
       phone: phone ?? this.phone,
       bio: bio ?? this.bio,
-      photoPath: photoPath ?? this.photoPath,
+      profile: profile ?? this.profile,
       province: province ?? "",
       adress: adress ?? "",
       balance: balance ?? this.balance
