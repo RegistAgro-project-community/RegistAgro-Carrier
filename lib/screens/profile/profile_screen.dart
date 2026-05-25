@@ -159,33 +159,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Configurações',
-                    style: TextStyle(
-                      color: REGISTheme.textSecondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _InfoCard(
-                    children: [
-                      _SettingRow(
-                        icon: Icons.edit_outlined,
-                        label: 'Editar Perfil',
-                      ),
-                      _SettingRow(
-                        icon: Icons.lock_outline,
-                        label: 'Alterar Senha',
-                      ),
-                      _SettingRow(
-                        icon: Icons.help_outline_rounded,
-                        label: 'Ajuda e Suporte',
-                      ),
-                    ],
-                  ),
                   const SizedBox(height: 210),
                   _InfoCard(
                     children: [

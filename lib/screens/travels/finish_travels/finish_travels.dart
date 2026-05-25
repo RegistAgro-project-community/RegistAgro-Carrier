@@ -36,53 +36,26 @@ class FinishTravelsTabState extends State<FinishTravelsTab> {
             child: widget.requests.isEmpty
               ? const _EmptyState()
               : ListView.separated(
-                  itemCount: widget.requests.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 16),
-                  itemBuilder: (context, index) {
-                    final c = widget.requests[index];
-                    return Dismissible(
-                      key: ValueKey('${c.farm.name}_${c.order.earning}'),
-                      background: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade400,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20),
-                        child: const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.delete_outline, color: Colors.white, size: 28),
-                            SizedBox(height: 4),
-                            Text(
-                              'Remover',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-                        child: TripCard(
-                          fazenda: c.farm.name!,
-                          status: c.status!,
-                          origem: "${c.farm.province}, ${c.farm.adress}",
-                          destino: c.order.delivery_adress!,
-                          quantidade: c.order.qtd!,
-                          produto: c.order.productName!,
-                          oferta: c.order.earning!,
-                          photo: c.farm.profile!,
-                          onIniciar: () => showFollwoUp(context),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                itemCount: widget.requests.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 16),
+                itemBuilder: (context, index) {
+                final c = widget.requests[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                  child: TripCard(
+                    fazenda: c.farm.name!,
+                    status: c.status!,
+                    origem: "${c.farm.province}, ${c.farm.adress}",
+                    destino: c.order.delivery_adress!,
+                    quantidade: c.order.qtd!,
+                    produto: c.order.productName!,
+                    oferta: c.order.earning!,
+                    photo: c.farm.profile!,
+                    onIniciar: () => showFollwoUp(context),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),

@@ -467,37 +467,57 @@ class _LocalInfoExpansivelState extends State<_LocalInfoExpansivel> {
   }
 }
 
-class _Metrica extends StatelessWidget {
+class _Metrica extends StatefulWidget {
   final String label;
   final String valor;
   const _Metrica({required this.label, required this.valor});
 
   @override
+  State<_Metrica> createState() => _MetricaState();
+}
+
+class _MetricaState extends State<_Metrica> {
+  bool _expandido = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
+    return GestureDetector(
+      onTap: () => setState(() => _expandido = !_expandido),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.25,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.circle, color: Colors.grey, size: 8),
-            const SizedBox(width: 3),
+            Row(
+              children: [
+                const Icon(Icons.circle, color: Colors.grey, size: 8),
+                const SizedBox(width: 3),
+                Expanded(
+                  child: Text(
+                    widget.label,
+                    overflow: _expandido ? TextOverflow.visible : TextOverflow.ellipsis,
+                    maxLines: _expandido ? null : 1,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             Text(
-              label,
+              widget.valor,
+              overflow: _expandido ? TextOverflow.visible : TextOverflow.ellipsis,
+              maxLines: _expandido ? null : 1,
               style: const TextStyle(
-                color: Colors.grey,
-                fontWeight: FontWeight.normal,
+                color: Colors.black,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
         ),
-        Text(
-          valor,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
