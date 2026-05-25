@@ -37,6 +37,16 @@ dependencies:
   flutter_keyboard_visibility: ^6.0.0
   pin_code_fields: ^8.0.1
   elegant_notification: ^2.5.1
+  dio: ^5.9.2
+  shared_preferences: ^2.5.5
+  flutter_secure_storage: ^10.2.0
+  geolocator: ^13.0.1
+  geocoding: ^4.0.0
+  google_maps_flutter: ^2.17.0
+  provider: ^6.1.5+1
+  google_places_flutter: ^2.1.1
+  animated_segmented_tab_control: ^2.0.0
+  image_picker: ^1.2.2
 
 dev_dependencies:
   flutter_test:

@@ -1,33 +1,80 @@
 import 'package:flutter/material.dart';
+import 'package:registagrodriver/components/show-follow-up-bottomSheet/follow_up.dart';
+import 'package:registagrodriver/components/tirp_card/tirp_card.dart';
+import 'package:registagrodriver/repositories/model/transportType.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
-
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String? name;
+  final String? balance;
+  final String? photo;
+  final List<Transport> requests;
+
+  const HomeScreen({
+    super.key,
+    required this.name,
+    required this.balance,
+    required this.photo,
+    required this.requests,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreen();
 }
 
-class _HomeScreen extends State<HomeScreen>  {
+class _HomeScreen extends State<HomeScreen> {
   bool isLoading = false;
+  String value = "00,0Kz";
+  bool isDisponivel = false;
 
   @override
   Widget build(BuildContext context) {
-
+    final hasPhoto = widget.photo != null && widget.photo!.trim().isNotEmpty;
+    
     return Scaffold(
-      appBar: AppBar(backgroundColor: REGISTheme.surface),
-      body: SingleChildScrollView(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: REGISTheme.surface,
+        title: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Total: ${widget.balance ?? value}",
+                style: TextStyle(fontSize: 18),
+              ),
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: Colors.white,
+                backgroundImage: hasPhoto
+                    ? NetworkImage(widget.photo!)
+                    : null,
+                child: !hasPhoto
+                    ? const Icon(
+                        Icons.person,
+                        size: 30,
+                        color: REGISTheme.accentLight,
+                      )
+                    : null,
+              )
+            ],
+          ),
+        ),
+      ),
+      body: Container(
+        color: Colors.white,
+        width: double.infinity,
+        height: double.infinity,
         child: SafeArea(
-          child: Container(
-            padding: EdgeInsets.all(24),
-            width: double.infinity,
-            decoration: BoxDecoration(color: Colors.white),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Olá, João Cabinda!",
+                  widget.name != null ? "Olá, ${widget.name}!" : "Olá!",
                   style: TextStyle(
                     color: REGISTheme.primary,
                     fontSize: 17,
@@ -41,11 +88,11 @@ class _HomeScreen extends State<HomeScreen>  {
                     color: REGISTheme.textSecondary,
                   ),
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 Container(
                   height: 50,
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: const Color.fromARGB(255, 231, 231, 231),
@@ -56,19 +103,18 @@ class _HomeScreen extends State<HomeScreen>  {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
-                        spacing: 1,
                         children: [
                           Icon(
                             Icons.check_box_rounded,
-                            color: isLoading ? Colors.green : Colors.grey,
+                            color: isDisponivel ? Colors.green : Colors.grey,
                           ),
+                          const SizedBox(width: 6),
                           Text(
-                            "${isLoading ? "Disponível" : "Indisponível"} para viagens",
-                            style: TextStyle(
+                            "${isDisponivel ? "Disponível" : "Indisponível"} para viagens",
+                            style: const TextStyle(
                               fontSize: 14,
                               color: Colors.black,
                               fontWeight: FontWeight.w500,
-                              fontFamily: 'Inter',
                             ),
                           ),
                         ],
@@ -76,394 +122,101 @@ class _HomeScreen extends State<HomeScreen>  {
                       Switch(
                         activeThumbColor: Colors.white,
                         activeTrackColor: Colors.green,
-                        value: isLoading, 
-                        onChanged: (value) {
-                          setState(() {
-                            isLoading = value;
-                          });
-                        }
-                      )
+                        value: isDisponivel,
+                        onChanged: (val) => setState(() => isDisponivel = val),
+                      ),
                     ],
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Text(
-                  "Próxima viagem",
-                  style: TextStyle(
+                  "Próximas viagens",
+                  style: const TextStyle(
                     fontSize: 16,
                     color: Colors.black,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                SizedBox(height: 20),
-                Container(
-                  height: 335,
-                  width: double.infinity,
-                  padding: EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: const Color.fromARGB(255, 231, 231, 231),
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    spacing: 20,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            spacing: 8,
-                            children: [
-                              CircleAvatar(
-                                backgroundColor: const Color.fromARGB(
-                                  255,
-                                  214,
-                                  213,
-                                  213,
-                                ),
-                                child: Icon(Icons.person, color: Colors.grey),
-                              ),
-                              Text(
-                                "Fazenda Filomena",
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: REGISTheme.primary,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(100),
-                              color: const Color.fromARGB(255, 223, 222, 222),
-                            ),
-                            child: Text(
-                              "Pendente",
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: REGISTheme.textSecondary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Column(
-                            children: [
-                              Icon(
-                                Icons.location_on,
-                                size: 20,
-                                color: Colors.grey,
-                              ),
-                              Column(
-                                spacing: 5,
-                                children: List.generate(7, (int index) {
-                                  return Container(
-                                    height: 5,
-                                    width: 1,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey,
-                                    ),
-                                  );
-                                }),
-                              ),
-                              Icon(
-                                Icons.place_outlined,
-                                size: 20,
-                                color: Colors.grey,
-                              ),
-                            ],
-                          ),
-                          Column(
-                            spacing: 30,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Column(
-                                spacing: 2,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "De onde vais sair ?",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  Text(
-                                    "AGT - Administração Geral Tributária",
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Column(
-                                spacing: 2,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Para onde vamos ?",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  Text(
-                                    "TIS TECH ANGOLA",
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            children: [
-                              Row(
-                                spacing: 3,
-                                children: [
-                                  Icon(
-                                    Icons.circle,
-                                    color: Colors.grey,
-                                    size: 8,
-                                  ),
-                                  Text(
-                                    "Quantidade",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "320kg/cx",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Row(
-                                spacing: 3,
-                                children: [
-                                  Icon(
-                                    Icons.circle,
-                                    color: Colors.grey,
-                                    size: 8,
-                                  ),
-                                  Text(
-                                    "Produto",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Tomate",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Row(
-                                spacing: 3,
-                                children: [
-                                  Icon(
-                                    Icons.circle,
-                                    color: Colors.grey,
-                                    size: 8,
-                                  ),
-                                  Text(
-                                    "Oferta",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "88.000kz",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: REGISTheme.surface,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(double.infinity, 45),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                const SizedBox(height: 20),
+                Expanded(
+                  child:
+                      widget.requests
+                          .where((r) => r.status == "pendente")
+                          .isEmpty
+                      ? _EmptyState()
+                      : ListView.separated(
+                          itemCount:
+                              widget.requests
+                                      .where((r) => r.status == "pendente")
+                                      .length >
+                                  2
+                              ? 2
+                              : widget.requests
+                                    .where((r) => r.status == "pendente")
+                                    .length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 16),
+                          itemBuilder: (context, index) {
+                            final c =
+                                widget.requests[index].status == "pendente"
+                                ? widget.requests[index]
+                                : null;
+
+                            if (widget.requests[index].status == "pendente") {
+                              return TripCard(
+                                fazenda: c!.farm.name!,
+                                status: c.status!,
+                                origem: "${c.farm.province}, ${c.farm.adress}",
+                                destino: c.order.delivery_adress ?? "",
+                                quantidade: c.order.qtd ?? "",
+                                produto: c.order.productName ?? "",
+                                oferta: c.order.earning ?? "",
+                                photo: c.farm.profile ?? "",
+                                onIniciar: () => showFollwoUp(context),
+                              );
+                            }
+
+                            return null;
+                          },
                         ),
-                        child: Text("Iniciar viagem"),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 20),
-                Column(
-                  spacing: 15,
-                  children: [
-                    Container(
-                      height: 100,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color.fromARGB(255, 231, 231, 231),
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: .center,
-                        mainAxisAlignment: .center,
-                        children: [
-                          Text(
-                            "10",
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: REGISTheme.surface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero
-                            ),
-                            child: Text(
-                              "Todas as viagens",
-                              style: TextStyle(fontSize: 13),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          height: 100,
-                          width: 175,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: const Color.fromARGB(255, 231, 231, 231),
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: .center,
-                            mainAxisAlignment: .center,
-                            children: [
-                              Text(
-                                "11",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  color: REGISTheme.surface,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {},
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero
-                                ),
-                                child: Text(
-                                  "Viagens confirmadas",
-                                  style: TextStyle(fontSize: 13),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          height: 100,
-                          width: 175,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: const Color.fromARGB(255, 231, 231, 231),
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: .center,
-                            mainAxisAlignment: .center,
-                            children: [
-                              Text(
-                                "12",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  color: REGISTheme.surface,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {},
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero
-                                ),
-                                child: Text(
-                                  "Viagens concluídas",
-                                  style: TextStyle(fontSize: 13),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.directions_car_outlined,
+            size: 64,
+            color: Colors.grey.shade300,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "Sem viagens disponíveis",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Aguarde! Novas corridas aparecerão aqui em breve.",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+          ),
+        ],
       ),
     );
   }

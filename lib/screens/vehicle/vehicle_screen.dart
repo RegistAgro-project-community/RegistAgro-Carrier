@@ -1,54 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/components/showMOdalBottomSheetCreateRoutess/modal_bottomsheet_create_routes.dart';
-import 'package:registagrodriver/models/vehicle/vehicle_model.dart';
+import 'package:registagrodriver/repositories/model/transportType.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
 class VehiclesAvailable extends StatefulWidget {
-  const VehiclesAvailable({super.key});
+  final List<Vehicle> vehicles;
+  const VehiclesAvailable({super.key, required this.vehicles});
 
   @override
   State<VehiclesAvailable> createState() => _VehiclesAvailableState();
 }
 
 class _VehiclesAvailableState extends State<VehiclesAvailable> {
-  final List<VehicleModel> _vehicles = [
-    VehicleModel(
-      id: '1',
-      brand: 'Toyota',
-      model: 'Hiace',
-      color: 'Branco',
-      typology: 'Minibus',
-      plate: 'LD-00-00-AA',
-      year: '2020',
-      capacity: '15',
-    ),
-  ];
-
   Future<void> _createVehicle() async {
     final newVehicle = await showCreateVehicle(context);
     if (newVehicle != null) {
-      setState(() => _vehicles.add(newVehicle));
+      setState(() => widget.vehicles.add(newVehicle));
     }
   }
 
-  Future<void> _editVehicle(VehicleModel vehicle) async {
+  Future<void> _editVehicle(Vehicle vehicle) async {
     final updated = await showEditVehicle(context, vehicle);
     if (updated != null) {
       setState(() {
-        final index = _vehicles.indexWhere((v) => v.id == updated.id);
-        if (index != -1) _vehicles[index] = updated;
+        final index = widget.vehicles.indexWhere((v) => v.id == updated.id);
+        if (index != -1) widget.vehicles[index] = updated;
       });
     }
   }
 
-  Future<void> _deleteVehicle(VehicleModel vehicle) async {
+  Future<void> _deleteVehicle(Vehicle vehicle) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Eliminar veículo'),
         content: Text(
-          'Tem a certeza que quer eliminar o veículo "${vehicle.brand} ${vehicle.model}"?\n'
+          'Tem a certeza que quer eliminar o veículo "${vehicle.brand}"?\n'
           'Esta acção não pode ser desfeita.',
         ),
         actions: [
@@ -72,11 +60,13 @@ class _VehiclesAvailableState extends State<VehiclesAvailable> {
     );
 
     if (confirmed == true) {
-      setState(() => _vehicles.removeWhere((v) => v.id == vehicle.id));
+      setState(() => widget.vehicles.removeWhere((v) => v.id == vehicle.id));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Veículo "${vehicle.brand} ${vehicle.model}" eliminado.'),
+            content: Text(
+              'Veículo "${vehicle.brand}" eliminado.',
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -93,14 +83,17 @@ class _VehiclesAvailableState extends State<VehiclesAvailable> {
           SliverAppBar(
             expandedHeight: 120,
             toolbarHeight: 70,
+            automaticallyImplyLeading: false,
             backgroundColor: REGISTheme.cardBg,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              titlePadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
               centerTitle: false,
               title: const Text(
-                "Veículos disponíveis",
+                "Meus Veículos",
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -109,7 +102,7 @@ class _VehiclesAvailableState extends State<VehiclesAvailable> {
               ),
             ),
           ),
-          _vehicles.isEmpty
+          widget.vehicles.isEmpty
               ? SliverFillRemaining(child: _buildEmptyState())
               : SliverPadding(
                   padding: const EdgeInsets.all(20),
@@ -118,12 +111,12 @@ class _VehiclesAvailableState extends State<VehiclesAvailable> {
                       (context, index) => Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: _VehicleCard(
-                          vehicle: _vehicles[index],
-                          onEdit: () => _editVehicle(_vehicles[index]),
-                          onDelete: () => _deleteVehicle(_vehicles[index]),
+                          vehicle: widget.vehicles[index],
+                          onEdit: () => _editVehicle(widget.vehicles[index]),
+                          onDelete: () => _deleteVehicle(widget.vehicles[index]),
                         ),
                       ),
-                      childCount: _vehicles.length,
+                      childCount: widget.vehicles.length,
                     ),
                   ),
                 ),
@@ -143,8 +136,11 @@ class _VehiclesAvailableState extends State<VehiclesAvailable> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.directions_car_outlined,
-              size: 64, color: Colors.grey.shade400),
+          Icon(
+            Icons.directions_car_outlined,
+            size: 64,
+            color: Colors.grey.shade400,
+          ),
           const SizedBox(height: 16),
           Text(
             'Nenhum veículo disponível',
@@ -166,7 +162,7 @@ class _VehiclesAvailableState extends State<VehiclesAvailable> {
 }
 
 class _VehicleCard extends StatelessWidget {
-  final VehicleModel vehicle;
+  final Vehicle vehicle;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -188,14 +184,19 @@ class _VehicleCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                height: 50,
-                width: 50,
-                decoration: BoxDecoration(
-                  color: REGISTheme.cardBg,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.directions_car, color: Colors.white),
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: REGISTheme.accentLight,
+                backgroundImage: vehicle.photo != ""
+                    ? NetworkImage(vehicle.photo!)
+                    : null,
+                child: vehicle.photo == ""
+                    ? const Icon(
+                        Icons.directions_car,
+                        size: 30,
+                        color: Colors.white,
+                      )
+                    : null,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -203,7 +204,7 @@ class _VehicleCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${vehicle.brand} ${vehicle.model}',
+                      '${vehicle.brand}',
                       style: TextStyle(
                         color: REGISTheme.cardBg,
                         fontWeight: FontWeight.w500,
@@ -212,11 +213,8 @@ class _VehicleCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      vehicle.typology,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                      ),
+                      vehicle.type ?? "",
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),
@@ -228,41 +226,26 @@ class _VehicleCard extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(
-                child: _detailItem(
-                  icon: Icons.palette_outlined,
-                  label: 'Cor',
-                  value: vehicle.color
-                ),
-              ),
               if (vehicle.plate != null)
                 Expanded(
                   child: _detailItem(
                     icon: Icons.credit_card_outlined,
                     label: 'Matrícula',
-                    value: vehicle.plate!
+                    value: vehicle.plate!,
                   ),
                 ),
             ],
           ),
-          if (vehicle.year != null || vehicle.capacity != null) ...[
+          if (vehicle.capacity != null) ...[
             const SizedBox(height: 8),
             Row(
               children: [
-                if (vehicle.year != null)
-                  Expanded(
-                    child: _detailItem(
-                      icon: Icons.calendar_today_outlined,
-                      label: 'Ano',
-                      value: vehicle.year!
-                    ),
-                  ),
                 if (vehicle.capacity != null)
                   Expanded(
                     child: _detailItem(
                       icon: Icons.people_outline,
                       label: 'Capacidade',
-                      value: '${vehicle.capacity}kg'
+                      value: '${vehicle.capacity}',
                     ),
                   ),
               ],
@@ -330,11 +313,18 @@ class _VehicleCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label,
-                style: const TextStyle(fontSize: 11, color: Colors.grey)),
-              Text(value,
+              Text(
+                label,
+                style: const TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+              Text(
+                value,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
         ),
