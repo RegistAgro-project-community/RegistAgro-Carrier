@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/auth/login/login.dart';
@@ -8,7 +10,7 @@ import 'package:registagrodriver/screens/profile/profile_class.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Profile {
-  logout(BuildContext context) async {
+  Future<void> logout(BuildContext context) async {
     final tokenClass = TokenStorage();
     final logoutResult = await tokenClass.logout();
 
@@ -28,16 +30,17 @@ class Profile {
 
       await Future.delayed(const Duration(milliseconds: 1000));
 
+      Navigator.of(context).pop();
       showTopNotification(
         context,
-        title: "Sucess",
+        title: "Success",
         description: "Sessão terminada com sucesso",
         backgroundColor: Colors.green,
         icon: Icons.verified,
       );
 
       final prefes = await SharedPreferences.getInstance();
-      prefes.setString("last_route", '/');
+      await prefes.setString("last_route", '/');
 
       Navigator.pushAndRemoveUntil(
         context,
@@ -96,10 +99,10 @@ class Profile {
       final data = res.data["data"];
 
       return UserModel(
-        name: data['name'],
+        name: data['name'] ,
         email: data['email'],
         phone: data['phone'],
-        bio: "bio",
+        bio: data["bio"] ?? "",
         province: data['province'],
         adress: data['adress'],
         profile: data['profile'],

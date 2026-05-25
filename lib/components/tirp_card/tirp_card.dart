@@ -68,7 +68,6 @@ class _TripCardState extends State<TripCard>
       return;
     }
     setState(() => _viagemIniciada = true);
-    widget.onIniciar();
   }
 
   void _onFinalizarCorrida() {
@@ -321,7 +320,7 @@ class _TripCardState extends State<TripCard>
               ],
             ),
           ),
-          if (!_viagemFinalizada)
+          if (!_viagemFinalizada && widget.status.toLowerCase() != 'entregue')
             Padding(
               padding: const EdgeInsets.all(15),
               child: _viagemIniciada
