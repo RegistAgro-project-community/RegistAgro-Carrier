@@ -198,46 +198,47 @@ class _TripCardState extends State<TripCard>
                             : null,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        widget.fazenda,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: REGISTheme.primary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _statusBgColor,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          _statusAtual,
-                          style: TextStyle(
-                            color: _statusTextColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.fazenda,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: REGISTheme.primary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      RotationTransition(
-                        turns: _rotateAnimation,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Colors.grey,
-                        ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _statusBgColor,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              _statusAtual,
+                              style: TextStyle(
+                                color: _statusTextColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
+                  ),   
+                  const SizedBox(width: 8),
+                  RotationTransition(
+                    turns: _rotateAnimation,
+                    child: const Icon(
+                      Icons.keyboard_arrow_down,
+                      color: Colors.grey,
+                    ),
                   ),
                 ],
               ),
@@ -416,27 +417,52 @@ class _LocalInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            color: Colors.grey,
-            fontWeight: FontWeight.w400,
-          ),
+    return _LocalInfoExpansivel(label: label, valor: valor);
+  }
+}
+
+class _LocalInfoExpansivel extends StatefulWidget {
+  final String label;
+  final String valor;
+  const _LocalInfoExpansivel({required this.label, required this.valor});
+
+  @override
+  State<_LocalInfoExpansivel> createState() => _LocalInfoExpansivelState();
+}
+
+class _LocalInfoExpansivelState extends State<_LocalInfoExpansivel> {
+  bool _expandido = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => setState(() => _expandido = !_expandido),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.55,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.label,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Colors.grey,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            Text(
+              widget.valor,
+              overflow: _expandido ? TextOverflow.visible : TextOverflow.ellipsis,
+              maxLines: _expandido ? null : 1,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
-        Text(
-          valor,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Colors.black,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
