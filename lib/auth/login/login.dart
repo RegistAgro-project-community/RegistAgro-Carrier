@@ -40,7 +40,7 @@ class _LoginState extends State<Login> {
         title: Text("${res['message']}"),
         description: const Text(
           "Seja bem-vindo de volta!",
-          style: TextStyle(fontFamily: 'Inter', color: Colors.grey),
+          style: TextStyle(fontFamily: 'Inter', color: Colors.white),
         ),
         icon: const SizedBox(),
         height: 75,

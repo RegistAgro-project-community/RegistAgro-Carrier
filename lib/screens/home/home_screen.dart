@@ -139,46 +139,37 @@ class _HomeScreen extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 20),
                 Expanded(
-                  child:
-                      widget.requests
+                  child: Builder(
+                    builder: (context) {
+                      final pending = widget.requests
                           .where((r) => r.status == "pendente")
-                          .isEmpty
-                      ? _EmptyState()
-                      : ListView.separated(
-                          itemCount:
-                              widget.requests
-                                      .where((r) => r.status == "pendente")
-                                      .length >
-                                  2
-                              ? 2
-                              : widget.requests
-                                    .where((r) => r.status == "pendente")
-                                    .length,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(height: 16),
-                          itemBuilder: (context, index) {
-                            final c =
-                                widget.requests[index].status == "pendente"
-                                ? widget.requests[index]
-                                : null;
+                          .toList();
 
-                            if (widget.requests[index].status == "pendente") {
-                              return TripCard(
-                                fazenda: c!.farm.name!,
-                                status: c.status!,
-                                origem: "${c.farm.province}, ${c.farm.adress}",
-                                destino: c.order.delivery_adress ?? "",
-                                quantidade: c.order.qtd ?? "",
-                                produto: c.order.productName ?? "",
-                                oferta: c.order.earning ?? "",
-                                photo: c.farm.profile ?? "",
-                                onIniciar: () => showFollwoUp(context),
-                              );
-                            }
+                      if (pending.isEmpty) return _EmptyState();
 
-                            return null;
-                          },
-                        ),
+                      final itemCount = pending.length > 2 ? 2 : pending.length;
+
+                      return ListView.separated(
+                        itemCount: itemCount,
+                        separatorBuilder: (_, __) => const SizedBox(height: 16),
+                        itemBuilder: (context, index) {
+                          final c = pending[index];
+                          return TripCard(
+                            requestId: c.id!,
+                            fazenda: c.farm.name!,
+                            status: c.status!,
+                            origem: "${c.farm.province}, ${c.farm.adress}",
+                            destino: c.order.delivery_adress ?? "",
+                            quantidade: c.order.qtd ?? "",
+                            produto: c.order.productName ?? "",
+                            oferta: c.order.earning ?? "",
+                            photo: c.farm.profile ?? "",
+                            onIniciar: () => showFollwoUp(context, c.id!),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),

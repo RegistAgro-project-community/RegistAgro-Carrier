@@ -1,7 +1,13 @@
+import 'package:elegant_notification/elegant_notification.dart';
+import 'package:elegant_notification/resources/arrays.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:registagrodriver/components/topNotification/top_notification.dart';
+import 'package:registagrodriver/repositories/transportRequest.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
 class TripCard extends StatefulWidget {
+  final String requestId;
   final String fazenda;
   final String status;
   final String origem;
@@ -14,6 +20,7 @@ class TripCard extends StatefulWidget {
 
   const TripCard({
     super.key,
+    required this.requestId,
     required this.fazenda,
     required this.status,
     required this.origem,
@@ -22,7 +29,7 @@ class TripCard extends StatefulWidget {
     required this.produto,
     required this.oferta,
     required this.onIniciar,
-    required this.photo
+    required this.photo,
   });
 
   @override
@@ -37,8 +44,6 @@ class _TripCardState extends State<TripCard>
   late AnimationController _controller;
   late Animation<double> _expandAnimation;
   late Animation<double> _rotateAnimation;
-
-  bool get _isPendente => widget.status.toLowerCase().trim() == 'pendente';
 
   @override
   void initState() {
@@ -62,12 +67,63 @@ class _TripCardState extends State<TripCard>
     _expandido ? _controller.forward() : _controller.reverse();
   }
 
-  void _onIniciarViagem() {
-    if (_isPendente) {
-      _mostrarNotificacaoPendente();
-      return;
+  void _onIniciarViagem(String requestId) async {
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        if (!mounted) return;
+        showTopNotification(
+          context,
+          title: "Error",
+          description: "Localização não permitida",
+          backgroundColor: Colors.amber,
+          icon: Icons.error_outline,
+        );
+
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final String latitude = position.latitude.toString();
+      final String longitude = position.longitude.toString();
+
+      if (!mounted) return;
+      final String message = await TransportRequest().acceptRequest(
+        context,
+        requestId,
+        latitude,
+        longitude,
+      );
+
+      ElegantNotification.success(
+        description: Text(
+          message,
+          style: TextStyle(fontFamily: 'Inter', color: Colors.white),
+        ),
+        icon: const SizedBox(),
+        height: 75,
+        // ignore: use_build_context_synchronously
+        width: MediaQuery.of(context).size.width * .9,
+        animation: AnimationType.fromTop,
+        // ignore: use_build_context_synchronously
+      ).show(context);
+    } catch (e) {
+      if (!mounted) return;
+      showTopNotification(
+        context,
+        title: "Error",
+        description: "Ocorreu um erro ao aceitar solicitação",
+        backgroundColor: Colors.amber,
+        icon: Icons.error_outline,
+      );
     }
-    setState(() => _viagemIniciada = true);
   }
 
   void _onFinalizarCorrida() {
@@ -101,7 +157,7 @@ class _TripCardState extends State<TripCard>
     );
   }
 
-  void _mostrarNotificacaoPendente() {
+  /*void _mostrarNotificacaoPendente() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
@@ -123,7 +179,7 @@ class _TripCardState extends State<TripCard>
         ),
       ),
     );
-  }
+  }*/
 
   @override
   void dispose() {
@@ -140,10 +196,10 @@ class _TripCardState extends State<TripCard>
   Color get _statusBgColor {
     switch (_statusAtual.toLowerCase()) {
       case 'entregue':
-        return Colors.blue.shade100;
-      case 'em andamento':
-      case 'confirmado':
         return Colors.green.shade100;
+      case 'em_transporte':
+      case 'aguardando_coleta':
+        return Colors.blue.shade100;
       case 'pendente':
       default:
         return Colors.orange.shade100;
@@ -153,10 +209,10 @@ class _TripCardState extends State<TripCard>
   Color get _statusTextColor {
     switch (_statusAtual.toLowerCase()) {
       case 'entregue':
-        return Colors.blue.shade700;
-      case 'em andamento':
-      case 'confirmado':
         return Colors.green.shade700;
+      case 'em_transporte':
+      case 'aguardando_coleta':
+        return Colors.blue.shade700;
       case 'pendente':
       default:
         return Colors.orange.shade700;
@@ -231,7 +287,7 @@ class _TripCardState extends State<TripCard>
                         ],
                       ),
                     ],
-                  ),   
+                  ),
                   const SizedBox(width: 8),
                   RotationTransition(
                     turns: _rotateAnimation,
@@ -321,10 +377,12 @@ class _TripCardState extends State<TripCard>
               ],
             ),
           ),
-          if (!_viagemFinalizada && widget.status.toLowerCase() != 'entregue')
+          if (widget.status.toLowerCase() != 'entregue')
             Padding(
               padding: const EdgeInsets.all(15),
-              child: _viagemIniciada
+              child:
+                  widget.status == "aguardando_coleta" ||
+                      widget.status == "em_transporte"
                   ? Row(
                       children: [
                         Expanded(
@@ -353,35 +411,40 @@ class _TripCardState extends State<TripCard>
                           ),
                         ),
                         const SizedBox(width: 10),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _onFinalizarCorrida,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green.shade600,
-                              foregroundColor: Colors.white,
-                              minimumSize: const Size(0, 45),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.check_circle_outline, size: 18),
-                                SizedBox(width: 6),
-                                Text('Finalizar'),
-                              ],
-                            ),
-                          ),
-                        ),
+                        ?widget.status == "em_transporte"
+                            ? Expanded(
+                                child: ElevatedButton(
+                                  onPressed: _onFinalizarCorrida,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green.shade600,
+                                    foregroundColor: Colors.white,
+                                    minimumSize: const Size(0, 45),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    textStyle: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle_outline,
+                                        size: 18,
+                                      ),
+                                      SizedBox(width: 6),
+                                      Text('Finalizar'),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : null,
                       ],
                     )
                   : ElevatedButton(
-                      onPressed: _onIniciarViagem,
+                      onPressed: () => _onIniciarViagem(widget.requestId),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: REGISTheme.surface,
                         foregroundColor: Colors.white,
@@ -452,7 +515,9 @@ class _LocalInfoExpansivelState extends State<_LocalInfoExpansivel> {
             ),
             Text(
               widget.valor,
-              overflow: _expandido ? TextOverflow.visible : TextOverflow.ellipsis,
+              overflow: _expandido
+                  ? TextOverflow.visible
+                  : TextOverflow.ellipsis,
               maxLines: _expandido ? null : 1,
               style: const TextStyle(
                 fontSize: 14,
@@ -495,7 +560,9 @@ class _MetricaState extends State<_Metrica> {
                 Expanded(
                   child: Text(
                     widget.label,
-                    overflow: _expandido ? TextOverflow.visible : TextOverflow.ellipsis,
+                    overflow: _expandido
+                        ? TextOverflow.visible
+                        : TextOverflow.ellipsis,
                     maxLines: _expandido ? null : 1,
                     style: const TextStyle(
                       color: Colors.grey,
@@ -507,7 +574,9 @@ class _MetricaState extends State<_Metrica> {
             ),
             Text(
               widget.valor,
-              overflow: _expandido ? TextOverflow.visible : TextOverflow.ellipsis,
+              overflow: _expandido
+                  ? TextOverflow.visible
+                  : TextOverflow.ellipsis,
               maxLines: _expandido ? null : 1,
               style: const TextStyle(
                 color: Colors.black,

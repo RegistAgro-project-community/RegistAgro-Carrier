@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
@@ -5,8 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:registagrodriver/components/google_maps/location_provider.dart';
 
 class MapScreen extends StatefulWidget {
-  final gmaps.LatLng destino;
-  const MapScreen({super.key, required this.destino});
+  final String requestId;
+  const MapScreen({super.key, required this.requestId});
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
@@ -14,8 +16,9 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   gmaps.GoogleMapController? _mapController;
   bool _modoDestino = false;
+  final Completer<gmaps.GoogleMapController> _controllerCompleter = Completer();
 
-  static const gmaps.LatLng _defaultLatLng = gmaps.LatLng(-8.8583, 13.2312); // Aeroporto de Luanda
+  static const gmaps.LatLng _defaultLatLng = gmaps.LatLng(-8.8583, 13.2312);
 
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
@@ -28,34 +31,39 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final loc = context.read<SourceLocationProvider>();
-      await loc.fetchCurrentLocation();
+      await loc.fetchCurrentLocation(widget.requestId);
+      
+       await Future.wait([
+        loc.fetchCurrentLocation(widget.requestId),
+        _controllerCompleter.future,
+      ]);
+      
       if (!mounted) return;
-      await loc.setDestination(widget.destino);
 
       if (loc.currentLatLng != null && loc.destinationLatLng != null) {
         final bounds = gmaps.LatLngBounds(
           southwest: gmaps.LatLng(
-            loc.currentLatLng!.latitude < widget.destino.latitude
+            loc.currentLatLng!.latitude < loc.destinationLatLng!.latitude
                 ? loc.currentLatLng!.latitude
-                : widget.destino.latitude,
-            loc.currentLatLng!.longitude < widget.destino.longitude
+                : loc.destinationLatLng!.latitude,
+            loc.currentLatLng!.longitude < loc.destinationLatLng!.longitude
                 ? loc.currentLatLng!.longitude
-                : widget.destino.longitude,
+                : loc.destinationLatLng!.longitude,
           ),
           northeast: gmaps.LatLng(
-            loc.currentLatLng!.latitude > widget.destino.latitude
+            loc.currentLatLng!.latitude > loc.destinationLatLng!.latitude
                 ? loc.currentLatLng!.latitude
-                : widget.destino.latitude,
-            loc.currentLatLng!.longitude > widget.destino.longitude
+                : loc.destinationLatLng!.latitude,
+            loc.currentLatLng!.longitude > loc.destinationLatLng!.longitude
                 ? loc.currentLatLng!.longitude
-                : widget.destino.longitude,
+                : loc.destinationLatLng!.longitude,
           ),
         );
         _mapController?.animateCamera(
@@ -87,39 +95,51 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     final markers = <gmaps.Marker>{};
 
     if (loc.currentLatLng != null) {
-      markers.add(gmaps.Marker(
-        markerId: const gmaps.MarkerId('origem'),
-        position: loc.currentLatLng!,
-        icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-            gmaps.BitmapDescriptor.hueGreen),
-        infoWindow: gmaps.InfoWindow(
-          title: '📍 Origem',
-          snippet: loc.currentAddress.isNotEmpty ? loc.currentAddress : null,
+      markers.add(
+        gmaps.Marker(
+          markerId: const gmaps.MarkerId('origem'),
+          position: loc.currentLatLng!,
+          icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
+            gmaps.BitmapDescriptor.hueGreen,
+          ),
+          infoWindow: gmaps.InfoWindow(
+            title: 'Origem',
+            snippet: loc.currentAddress.isNotEmpty ? loc.currentAddress : null,
+          ),
         ),
-      ));
+      );
     }
 
     if (loc.destinationLatLng != null) {
-      markers.add(gmaps.Marker(
-        markerId: const gmaps.MarkerId('destino'),
-        position: loc.destinationLatLng!,
-        icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-            gmaps.BitmapDescriptor.hueRed),
-        infoWindow: gmaps.InfoWindow(
-          title: '🏁 Destino',
-          snippet: loc.destinationAddress.isNotEmpty ? loc.destinationAddress : null,
+      markers.add(
+        gmaps.Marker(
+          markerId: const gmaps.MarkerId('destino'),
+          position: loc.destinationLatLng!,
+          icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
+            gmaps.BitmapDescriptor.hueRed,
+          ),
+          infoWindow: gmaps.InfoWindow(
+            title: 'Destino',
+            snippet: loc.destinationAddress.isNotEmpty
+                ? loc.destinationAddress
+                : null,
+          ),
         ),
-      ));
+      );
     }
 
     return markers;
   }
 
-  void _onMapTap(gmaps.LatLng latLng, SourceLocationProvider loc) async {
+  void _onMapTap(
+    gmaps.LatLng latLng,
+    SourceLocationProvider loc,
+    String requestId,
+  ) async {
     HapticFeedback.lightImpact();
 
     if (_modoDestino) {
-      await loc.setDestination(latLng);
+      await loc.setDestination(requestId);
 
       if (loc.currentLatLng != null) {
         final bounds = gmaps.LatLngBounds(
@@ -164,7 +184,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   target: loc.currentLatLng ?? _defaultLatLng,
                   zoom: 15,
                 ),
-                onMapCreated: (controller) => _mapController = controller,
+                onMapCreated: (controller) {
+                  _mapController = controller;
+                  if (!_controllerCompleter.isCompleted) {
+                    _controllerCompleter.complete(controller);
+                  }
+                },
                 markers: _buildMarkers(loc),
                 polylines: _buildPolylines(loc),
                 myLocationEnabled: true,
@@ -176,7 +201,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 zoomGesturesEnabled: true,
                 rotateGesturesEnabled: true,
                 tiltGesturesEnabled: true,
-                onTap: (latLng) => _onMapTap(latLng, loc),
+                onTap: (latLng) => _onMapTap(latLng, loc, widget.requestId),
               ),
             ),
             if (loc.isLoading)
@@ -205,9 +230,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     icone: Icons.trip_origin,
                     label: loc.isLoading
                         ? 'A obter localização...'
-                        : loc.error ?? (loc.currentAddress.isNotEmpty
-                            ? loc.currentAddress
-                            : 'Toque no mapa para definir origem'),
+                        : loc.error ??
+                              (loc.currentAddress.isNotEmpty
+                                  ? loc.currentAddress
+                                  : 'Toque no mapa para definir origem'),
                     isLoading: loc.isLoading,
                     hasError: loc.error != null,
                   ),
@@ -218,8 +244,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     label: loc.destinationLatLng == null
                         ? 'Toque no mapa para definir destino'
                         : loc.destinationAddress.isNotEmpty
-                            ? loc.destinationAddress
-                            : 'Destino definido',
+                        ? loc.destinationAddress
+                        : 'Destino definido',
                     isLoading: false,
                     hasError: false,
                   ),
@@ -234,30 +260,49 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   _CircleButton(
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      _mapController?.animateCamera(gmaps.CameraUpdate.zoomIn());
+                      _mapController?.animateCamera(
+                        gmaps.CameraUpdate.zoomIn(),
+                      );
                     },
-                    child: const Icon(Icons.add, size: 20, color: Colors.black87),
+                    child: const Icon(
+                      Icons.add,
+                      size: 20,
+                      color: Colors.black87,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   _CircleButton(
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      _mapController?.animateCamera(gmaps.CameraUpdate.zoomOut());
+                      _mapController?.animateCamera(
+                        gmaps.CameraUpdate.zoomOut(),
+                      );
                     },
-                    child: const Icon(Icons.remove, size: 20, color: Colors.black87),
+                    child: const Icon(
+                      Icons.remove,
+                      size: 20,
+                      color: Colors.black87,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   _CircleButton(
                     onTap: () async {
                       HapticFeedback.lightImpact();
-                      await loc.fetchCurrentLocation();
+                      await loc.fetchCurrentLocation(widget.requestId);
                       if (loc.currentLatLng != null) {
                         _mapController?.animateCamera(
-                          gmaps.CameraUpdate.newLatLngZoom(loc.currentLatLng!, 15),
+                          gmaps.CameraUpdate.newLatLngZoom(
+                            loc.currentLatLng!,
+                            15,
+                          ),
                         );
                       }
                     },
-                    child: const Icon(Icons.my_location, size: 20, color: Colors.black87),
+                    child: const Icon(
+                      Icons.my_location,
+                      size: 20,
+                      color: Colors.black87,
+                    ),
                   ),
                 ],
               ),
@@ -276,7 +321,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         color: Colors.black.withOpacity(0.12),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
-                      )
+                      ),
                     ],
                   ),
                   child: Row(
@@ -290,7 +335,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                           final loc = context.read<SourceLocationProvider>();
                           if (loc.currentLatLng != null) {
                             _mapController?.animateCamera(
-                              gmaps.CameraUpdate.newLatLngZoom(loc.currentLatLng!, 16),
+                              gmaps.CameraUpdate.newLatLngZoom(
+                                loc.currentLatLng!,
+                                16,
+                              ),
                             );
                           }
                         },
@@ -304,7 +352,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                           final loc = context.read<SourceLocationProvider>();
                           if (loc.destinationLatLng != null) {
                             _mapController?.animateCamera(
-                              gmaps.CameraUpdate.newLatLngZoom(loc.destinationLatLng!, 16),
+                              gmaps.CameraUpdate.newLatLngZoom(
+                                loc.destinationLatLng!,
+                                16,
+                              ),
                             );
                           }
                         },
@@ -355,7 +406,7 @@ class _InfoBar extends StatelessWidget {
             color: Colors.black.withOpacity(0.1),
             blurRadius: 12,
             offset: const Offset(0, 3),
-          )
+          ),
         ],
       ),
       child: Row(
@@ -445,7 +496,7 @@ class _CircleButton extends StatelessWidget {
               color: Colors.black.withOpacity(0.12),
               blurRadius: 12,
               offset: const Offset(0, 3),
-            )
+            ),
           ],
         ),
         child: Center(child: child),

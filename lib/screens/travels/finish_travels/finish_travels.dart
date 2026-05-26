@@ -43,6 +43,7 @@ class FinishTravelsTabState extends State<FinishTravelsTab> {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                   child: TripCard(
+                    requestId: c.id!,
                     fazenda: c.farm.name!,
                     status: c.status!,
                     origem: "${c.farm.province}, ${c.farm.adress}",
@@ -51,7 +52,7 @@ class FinishTravelsTabState extends State<FinishTravelsTab> {
                     produto: c.order.productName!,
                     oferta: c.order.earning!,
                     photo: c.farm.profile!,
-                    onIniciar: () => showFollwoUp(context),
+                    onIniciar: () => showFollwoUp(context, c.id!),
                   ),
                 );
               },

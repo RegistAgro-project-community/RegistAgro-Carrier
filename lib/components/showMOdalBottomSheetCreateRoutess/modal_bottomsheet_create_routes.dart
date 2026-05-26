@@ -32,7 +32,6 @@ Future<Vehicle?> _showVehicleDialog(
 }) {
   final isEditing = existingVehicle != null;
   final formKey = GlobalKey<FormState>();
-  final picker = ImagePicker();
 
   final brandController = TextEditingController(
     text: existingVehicle?.brand ?? '',
@@ -61,10 +60,13 @@ Future<Vehicle?> _showVehicleDialog(
       if (pickedFile != null) {
         selectedImage.value = File(pickedFile.path);
         photoController.text = pickedFile.path;
+
+        print(selectedImage.value);
+        print(photoController.text);
       }
     } catch (e) {
       print("Erro ao selecionar imagem: $e");
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
