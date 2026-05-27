@@ -11,7 +11,6 @@ const _typologies = [
   'frigorifico',
   'fechado',
   'aberto',
-  'fechado',
   "aberto_coberto",
 ];
 
@@ -294,6 +293,7 @@ Future<Vehicle?> _showVehicleDialog(
                                       ? null
                                       : photoController.text.trim(),
                                   type: selectedTypology.value,
+                                  imageFile: selectedImage.value
                                 );
                                 Navigator.of(context).pop(vehicle);
                               }

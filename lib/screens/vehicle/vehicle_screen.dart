@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/components/showMOdalBottomSheetCreateRoutess/modal_bottomsheet_create_routes.dart';
 import 'package:registagrodriver/repositories/model/transportType.dart';
+import 'package:registagrodriver/repositories/vehicle.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
 
 class VehiclesAvailable extends StatefulWidget {
@@ -13,10 +14,27 @@ class VehiclesAvailable extends StatefulWidget {
 
 class _VehiclesAvailableState extends State<VehiclesAvailable> {
   Future<void> _createVehicle() async {
-    final newVehicle = await showCreateVehicle(context);
-    if (newVehicle != null) {
-      setState(() => widget.vehicles.add(newVehicle));
+    final result = await showCreateVehicle(context);
+    if (result == null) return;
+
+    if (result.imageFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Seleccione uma foto para o veículo.")),
+      );
+      return;
     }
+
+    await VehicleRepositorie().createVehicle(
+      context,
+      result.brand!,
+      result.plate ?? "",
+      result.type ?? "",
+      int.tryParse(result.capacity ?? "0") ?? 0,
+      result.unit ?? "kg",
+      result.imageFile!,
+    );
+
+    setState(() => widget.vehicles.add(result));
   }
 
   Future<void> _editVehicle(Vehicle vehicle) async {
@@ -64,9 +82,7 @@ class _VehiclesAvailableState extends State<VehiclesAvailable> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Veículo "${vehicle.brand}" eliminado.',
-            ),
+            content: Text('Veículo "${vehicle.brand}" eliminado.'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -113,7 +129,8 @@ class _VehiclesAvailableState extends State<VehiclesAvailable> {
                         child: _VehicleCard(
                           vehicle: widget.vehicles[index],
                           onEdit: () => _editVehicle(widget.vehicles[index]),
-                          onDelete: () => _deleteVehicle(widget.vehicles[index]),
+                          onDelete: () =>
+                              _deleteVehicle(widget.vehicles[index]),
                         ),
                       ),
                       childCount: widget.vehicles.length,

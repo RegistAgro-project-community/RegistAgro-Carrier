@@ -139,9 +139,31 @@ class _TripCardState extends State<TripCard>
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
               setState(() => _viagemFinalizada = true);
+
+              try {
+                final String message = await TransportRequest().finishFlow(
+                  context,
+                  widget.requestId,
+                );
+
+                ElegantNotification.success(
+                  description: Text(
+                    message,
+                    style: TextStyle(fontFamily: 'Inter', color: Colors.white),
+                  ),
+                  icon: const SizedBox(),
+                  height: 75,
+                  // ignore: use_build_context_synchronously
+                  width: MediaQuery.of(context).size.width * .9,
+                  animation: AnimationType.fromTop,
+                  // ignore: use_build_context_synchronously
+                ).show(context);
+              } on Exception catch (_) {
+                print("Erro ao finalizar escoamento");
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green.shade600,

@@ -75,16 +75,20 @@ class VehicleRepositorie {
             e.message ??
             message;
 
+        e.response?.data["error"] != null || e.response?.data["info"] != null ? 
         showTopNotification(
           context,
           title: "Error",
           description: message,
           backgroundColor: Colors.red.shade700,
           icon: Icons.error_outline,
-        );
+        ) :
+
+        print(message);
       }
 
-      throw Exception(message);
+      print(message);
+      rethrow;
     } catch (e) {
       if (showLoading && context.mounted) {
         Navigator.of(context).pop();
@@ -126,12 +130,7 @@ class VehicleRepositorie {
       }
 
       final dio = Dio(
-        BaseOptions(
-          headers: {
-            "content-type": "application/json",
-            "authorization": "Bearer ${tokenMap["token"]}",
-          },
-        ),
+        BaseOptions(headers: {"authorization": "Bearer ${tokenMap["token"]}"}),
       );
 
       final ext = img.path.split('.').last.toLowerCase();
@@ -149,20 +148,16 @@ class VehicleRepositorie {
           filename: img.path.split('/').last,
           contentType: contentType,
         ),
+        "brand": brand,
+        "plate": plate,
+        "category": category,
+        "capacity": capacity,
+        "unit": unit,
       });
 
       final res = await dio.post(
         "https://api-registagro.onrender.com/transports/vehicle/create",
-        data: {
-          formData,
-          {
-            "brand": brand,
-            "plate": plate,
-            "category": category,
-            "capacity": capacity,
-            "unit": unit,
-          },
-        },
+        data: formData,
       );
 
       Navigator.of(context).pop();

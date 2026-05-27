@@ -23,8 +23,9 @@ class Profile {
           return const Center(
             child: CircularProgressIndicator(
               color: Colors.white,
-              strokeWidth: 2,            
-            ));
+              strokeWidth: 2,
+            ),
+          );
         },
       );
 
@@ -58,8 +59,11 @@ class Profile {
     }
   }
 
-  Future<UserModel> userData(BuildContext context, {bool showLoading = true}) async {
-    if(showLoading){
+  Future<UserModel> userData(
+    BuildContext context, {
+    bool showLoading = true,
+  }) async {
+    if (showLoading) {
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -73,10 +77,7 @@ class Profile {
       final tokenMap = await TokenStorage().readToken();
 
       if (tokenMap.containsKey("error") || tokenMap["token"] == null) {
-        handleAuthError(
-          context,
-          tokenMap['error'] ?? "Faça login novamente",
-        );
+        handleAuthError(context, tokenMap['error'] ?? "Faça login novamente");
 
         throw Exception("Error");
       }
@@ -94,24 +95,24 @@ class Profile {
         "https://api-registagro.onrender.com/users/profile",
       );
 
-      if(showLoading && context.mounted){
+      if (showLoading && context.mounted) {
         Navigator.of(context).pop();
       }
 
       final data = res.data["data"];
 
       return UserModel(
-        name: data['name'] ,
+        name: data['name'],
         email: data['email'],
         phone: data['phone'],
         bio: data["bio"] ?? "",
         province: data['province'],
         adress: data['adress'],
         profile: data['profile'],
-        balance: res.data["balance"]
+        balance: res.data["balance"],
       );
     } on DioException catch (e) {
-      if(showLoading && context.mounted){
+      if (showLoading && context.mounted) {
         Navigator.of(context).pop();
       }
 
@@ -128,25 +129,25 @@ class Profile {
             e.message ??
             message;
 
+        e.response?.data["error"] != null || e.response?.data["info"] != null ? 
         showTopNotification(
           context,
           title: "Error",
           description: message,
           backgroundColor: Colors.red.shade700,
           icon: Icons.error_outline,
-        );
+        ) :
+
+        print(message);
       }
 
       throw Exception(message);
     } catch (e) {
-      if(showLoading && context.mounted){
+      if (showLoading && context.mounted) {
         Navigator.of(context).pop();
       }
 
-      handleAuthError(
-        context,
-        "Ocorreu um erro inesperado",
-      );
+      handleAuthError(context, "Ocorreu um erro inesperado");
 
       throw Exception("Error");
     }

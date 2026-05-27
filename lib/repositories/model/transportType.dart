@@ -1,3 +1,5 @@
+import 'dart:io';
+
 class Transport {
   final String? id;
   final String? status;
@@ -25,7 +27,9 @@ class Transport {
       delivered_at: json["delivered_at"],
       farm: Farm.fromJson((json['farm'] as Map<String, dynamic>?) ?? {}),
       order: Order.fromJson((json['order'] as Map<String, dynamic>?) ?? {}),
-      vehicle: Vehicle.fromJson((json['vehicle'] as Map<String, dynamic>?) ?? {}),
+      vehicle: Vehicle.fromJson(
+        (json['vehicle'] as Map<String, dynamic>?) ?? {},
+      ),
     );
   }
 }
@@ -98,6 +102,8 @@ class Vehicle {
   final String? type;
   final String? capacity;
   final String? photo;
+  final String? unit;
+  final File? imageFile;
 
   Vehicle({
     required this.brand,
@@ -106,6 +112,8 @@ class Vehicle {
     required this.photo,
     required this.plate,
     required this.type,
+    this.imageFile,
+    this.unit
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
