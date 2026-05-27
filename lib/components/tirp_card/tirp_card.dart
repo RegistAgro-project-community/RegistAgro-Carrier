@@ -127,8 +127,9 @@ class _TripCardState extends State<TripCard>
   }
 
   void _onFinalizarCorrida() {
+    final outerContext = context;
     showDialog(
-      context: context,
+      context: outerContext,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: const Text('Finalizar corrida'),
@@ -148,6 +149,8 @@ class _TripCardState extends State<TripCard>
                   context,
                   widget.requestId,
                 );
+
+                if (!context.mounted) return;
 
                 ElegantNotification.success(
                   description: Text(

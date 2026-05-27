@@ -182,13 +182,6 @@ class TransportRequest {
   }
 
   Future<String> finishFlow(BuildContext context, String requestId) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(
-        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-      ),
-    );
 
     try {
       final tokenMap = await TokenStorage().readToken();
@@ -215,14 +208,12 @@ class TransportRequest {
         "https://api-registagro.onrender.com/flow/carrier/finish/request/$requestId",
       );
 
-      Navigator.of(context, rootNavigator: true).pop();
 
       final json = res.data as Map<String, dynamic>? ?? {};
       final String message = json["message"] as String? ?? "";
 
       return message;
     } on DioException catch (e) {
-      Navigator.of(context, rootNavigator: true).pop();
 
       String message = "Erro ao terminar corrida";
 
@@ -248,7 +239,6 @@ class TransportRequest {
 
       throw Exception(message);
     } catch (e) {
-      Navigator.of(context).pop();
 
       Profile().handleAuthError(context, "Ocorreu um erro inesperado");
 
