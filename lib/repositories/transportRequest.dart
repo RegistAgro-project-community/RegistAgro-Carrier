@@ -215,7 +215,7 @@ class TransportRequest {
         "https://api-registagro.onrender.com/flow/carrier/finish/request/$requestId",
       );
 
-      Navigator.of(context).pop();
+      Navigator.of(context, rootNavigator: true).pop();
 
       final json = res.data as Map<String, dynamic>? ?? {};
       final String message = json["message"] as String? ?? "";
