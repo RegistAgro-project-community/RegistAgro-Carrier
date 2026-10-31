@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:registagrodriver/components/google_maps/maps_screen.dart';
 
-void showFollwoUp(BuildContext context) {
+void showFollwoUp(BuildContext context, String requestId) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -66,9 +66,7 @@ void showFollwoUp(BuildContext context) {
                           SizedBox(
                             height: totalHeight * 0.90,
                             child: SafeArea(
-                              child: MapScreen(
-                                destino: const gmaps.LatLng(-8.7922, 13.2205,), // Ilha de Luanda
-                              ),
+                              child: MapScreen(requestId: requestId,),
                             ),
                           ),
                           // Padding(

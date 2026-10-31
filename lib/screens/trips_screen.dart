@@ -107,7 +107,7 @@ class TripItem extends StatelessWidget {
         break;
       case TripStatus.inProgress:
         statusColor = REGISTheme.accentLight;
-        statusLabel = 'em_andamento';
+        statusLabel = 'em_transporte';
         break;
       case TripStatus.completed:
         statusColor = REGISTheme.success;

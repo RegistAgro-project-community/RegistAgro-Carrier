@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/auth/login/login.dart';
+import 'package:registagrodriver/components/safe_notification.dart';
+import 'package:registagrodriver/components/turnstile_widget.dart';
 import 'package:registagrodriver/repositories/auth/signup.dart';
+import 'package:registagrodriver/services/geocoding_service.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
+import 'package:registagrodriver/utils/auth_validators.dart';
+import 'package:registagrodriver/utils/safe_error.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -12,6 +17,7 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   final _formKey = GlobalKey<FormState>();
+  final _turnstileKey = GlobalKey<TurnstileWidgetState>();
   bool isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -22,27 +28,74 @@ class _SignUpState extends State<SignUp> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _passwordConfirmController = TextEditingController();
+  String? _turnstileToken;
+  final _geocoder = GeocodingService();
 
-  void submit() async {
+  Future<void> submit() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
 
+    if (_turnstileToken == null || _turnstileToken!.isEmpty) {
+      showSafeNotification(
+        context,
+        title: 'Verificação',
+        description: SafeErrorMessages.captchaFailed,
+        backgroundColor: Colors.amber.shade700,
+        icon: Icons.security,
+      );
+      return;
+    }
+
     setState(() => isLoading = true);
-    
+
+    try {
+      // SSRF protection: validate address is within Angola before signup
+      await _geocoder.geocodeAddress(
+        '${_location.text}, ${_province.text}, Angola',
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => isLoading = false);
+      showSafeNotification(
+        context,
+        title: 'Localização',
+        description: 'Endereço fora da área de operação (Angola)',
+        backgroundColor: Colors.amber.shade700,
+        icon: Icons.location_off,
+      );
+      return;
+    }
+
     final signupClass = SignupValidations(
-      name:  _nameController.text,
-      email:  _emailController.text,
-      phone:  _phoneController.text,
-      province:  _province.text,
-      adress:  _location.text,
-      pass1:  _passwordController.text,
-      pass2:  _passwordConfirmController.text,
+      name: _nameController.text,
+      email: _emailController.text,
+      phone: _phoneController.text,
+      province: _province.text,
+      adress: _location.text,
+      pass1: _passwordController.text,
+      pass2: _passwordConfirmController.text,
+      captchaToken: _turnstileToken,
     );
 
     await signupClass.sendEmail(context);
 
     if (!mounted) return;
-    setState(() => isLoading = false);
+    setState(() {
+      isLoading = false;
+      _turnstileToken = null;
+    });
+  }
+
+  @override
+  void dispose() {
+    _province.dispose();
+    _location.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _passwordConfirmController.dispose();
+    super.dispose();
   }
 
   @override
@@ -80,15 +133,7 @@ class _SignUpState extends State<SignUp> {
                         labelText: 'Nome Completo',
                         prefixIcon: Icon(Icons.person_outline, color: REGISTheme.textSecondary),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Por favor, insira o seu nome completo';
-                        }
-                        if (value.trim().split(' ').length < 2) {
-                          return 'Insira o nome e o apelido';
-                        }
-                        return null;
-                      },
+                      validator: AuthValidators.validateName,
                     ),
                     TextFormField(
                       controller: _phoneController,
@@ -98,15 +143,7 @@ class _SignUpState extends State<SignUp> {
                         labelText: 'Telefone',
                         prefixIcon: Icon(Icons.phone_outlined, color: REGISTheme.textSecondary),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Por favor, insira o seu número de telefone';
-                        }
-                        if (value.length < 9) {
-                          return 'Número de telefone inválido (mínimo 9 dígitos)';
-                        }
-                        return null;
-                      },
+                      validator: AuthValidators.validatePhone,
                     ),
                     TextFormField(
                       controller: _emailController,
@@ -116,16 +153,7 @@ class _SignUpState extends State<SignUp> {
                         labelText: 'Email',
                         prefixIcon: Icon(Icons.email_outlined, color: REGISTheme.textSecondary),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Por favor, insira o seu email';
-                        }
-                        final emailRegex = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$');
-                        if (!emailRegex.hasMatch(value.trim())) {
-                          return 'Email inválido';
-                        }
-                        return null;
-                      },
+                      validator: AuthValidators.validateEmail,
                     ),
                     TextFormField(
                       controller: _location,
@@ -218,7 +246,14 @@ class _SignUpState extends State<SignUp> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
+                TurnstileWidget(
+                                  key: _turnstileKey,
+                                  action: 'signup',
+                                  onVerify: (token) => setState(() => _turnstileToken = token),
+                                  onTokenExpired: () => setState(() => _turnstileToken = null),
+                                ),
+                const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: isLoading ? null : submit,
                   child: isLoading

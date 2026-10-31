@@ -2,10 +2,15 @@ import 'package:elegant_notification/elegant_notification.dart';
 import 'package:elegant_notification/resources/arrays.dart';
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/auth/signup/sign_up.dart';
+import 'package:registagrodriver/components/safe_notification.dart';
 import 'package:registagrodriver/components/showModalBottomSheetAdmin/modal_bottomsheet_admin.dart';
+import 'package:registagrodriver/components/turnstile_widget.dart';
 import 'package:registagrodriver/repositories/auth/login.dart';
 import 'package:registagrodriver/screens/MainNavScreen/main_nav_screen.dart';
+import 'package:registagrodriver/services/auth_rate_limiter.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
+import 'package:registagrodriver/utils/auth_validators.dart';
+import 'package:registagrodriver/utils/safe_error.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
@@ -17,64 +22,98 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
+  final _turnstileKey = GlobalKey<TurnstileWidgetState>();
   bool isLoading = false;
   bool _obscurePassword = true;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _rateLimiter = AuthRateLimiter();
+  String? _turnstileToken;
 
-  void _submit() async {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => isLoading = true);
+    if (_turnstileToken == null || _turnstileToken!.isEmpty) {
+      showSafeNotification(
+        context,
+        title: 'Verificação',
+        description: SafeErrorMessages.captchaFailed,
+        backgroundColor: Colors.amber.shade700,
+        icon: Icons.security,
+      );
+      return;
+    }
 
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    final res = await login(context, email, password);
+    final canTry = await _rateLimiter.canAttempt(email);
+    if (!canTry) {
+      final mins = await _rateLimiter.getRemainingMinutes(email);
+      if (!mounted) return;
+      showSafeNotification(
+        context,
+        title: 'Bloqueado',
+        description: 'Muitas tentativas. Tente em ${mins ?? 15} min.',
+        backgroundColor: Colors.amber.shade700,
+        icon: Icons.lock_clock,
+      );
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    final res = await login(
+      context,
+      email,
+      password,
+      captchaToken: _turnstileToken,
+    );
+
+    final success = res.containsKey('message');
+    await _rateLimiter.recordAttempt(email, success);
 
     if (!mounted) return;
     setState(() => isLoading = false);
-    
-    if (res.containsKey('message')) {
+
+    if (success) {
       ElegantNotification.success(
-        title: Text("${res['message']}"),
+        title: Text('${res['message']}'),
         description: const Text(
-          "Seja bem-vindo de volta!",
-          style: TextStyle(fontFamily: 'Inter', color: Colors.grey),
+          'Seja bem-vindo de volta!',
+          style: TextStyle(fontFamily: 'Inter', color: Colors.white),
         ),
         icon: const SizedBox(),
         height: 75,
-        // ignore: use_build_context_synchronously
         width: MediaQuery.of(context).size.width * .9,
         animation: AnimationType.fromTop,
-        // ignore: use_build_context_synchronously
       ).show(context);
 
-      final prefes = await SharedPreferences.getInstance();
-      prefes.setString("last_route", '/MainPage');
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_route', '/MainPage');
 
+      if (!mounted) return;
       Navigator.pushAndRemoveUntil(
-        // ignore: use_build_context_synchronously
         context,
-        MaterialPageRoute(builder: (context) => MainNavScreen()),
+        MaterialPageRoute(builder: (context) => const MainNavScreen()),
         (route) => false,
       );
     } else {
-      ElegantNotification.error(
-        title: Text("Error"),
-        description: Text(
-          "${res['error']}",
-          style: TextStyle(fontFamily: 'Inter', color: Colors.grey),
-        ),
-        icon: const SizedBox(),
-        height: 75,
-        // ignore: use_build_context_synchronously
-        width: MediaQuery.of(context).size.width * .9,
-        animation: AnimationType.fromTop,
-        // ignore: use_build_context_synchronously
-      ).show(context);
-      
-    }
+          showSafeNotification(
+            context,
+            title: 'Erro',
+            description: res['error'] ?? SafeErrorMessages.credentialsInvalid,
+          );
+          setState(() => _turnstileToken = null);
+          await _turnstileKey.currentState?.reset();
+        }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -109,18 +148,12 @@ class _LoginState extends State<Login> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined, color: REGISTheme.textSecondary),
+                    prefixIcon: Icon(
+                      Icons.email_outlined,
+                      color: REGISTheme.textSecondary,
+                    ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Por favor, insira o seu email';
-                    }
-                    final emailRegex = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$');
-                    if (!emailRegex.hasMatch(value.trim())) {
-                      return 'Email inválido';
-                    }
-                    return null;
-                  },
+                  validator: AuthValidators.validateEmail,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -129,7 +162,10 @@ class _LoginState extends State<Login> {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Palavra-passe',
-                    prefixIcon: const Icon(Icons.lock_outline, color: REGISTheme.textSecondary),
+                    prefixIcon: const Icon(
+                      Icons.lock_outline,
+                      color: REGISTheme.textSecondary,
+                    ),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
@@ -137,27 +173,31 @@ class _LoginState extends State<Login> {
                             : Icons.visibility_off_outlined,
                         color: REGISTheme.textSecondary,
                       ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira a sua palavra-passe';
-                    }
-                    if (value.length < 6) {
-                      return 'A palavra-passe deve ter pelo menos 6 caracteres';
-                    }
-                    return null;
-                  },
+                  validator: (v) =>
+                      AuthValidators.validatePassword(v, minLength: 6),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
+                TurnstileWidget(
+                                  key: _turnstileKey,
+                                  action: 'login',
+                                  onVerify: (token) => setState(() => _turnstileToken = token),
+                                  onTokenExpired: () => setState(() => _turnstileToken = null),
+                                ),
+                const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: isLoading ? null : _submit,
                   child: isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
                       : const Text('Entrar'),
                 ),
@@ -171,7 +211,7 @@ class _LoginState extends State<Login> {
                     TextButton(
                       onPressed: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => SignUp()),
+                        MaterialPageRoute(builder: (context) => const SignUp()),
                       ),
                       child: const Text(
                         'Criar conta',
@@ -188,7 +228,10 @@ class _LoginState extends State<Login> {
                     onPressed: () => showContactAdmin(context),
                     child: const Text(
                       'Contactar Administrador',
-                      style: TextStyle(color: REGISTheme.textSecondary, fontSize: 13),
+                      style: TextStyle(
+                        color: REGISTheme.textSecondary,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ),

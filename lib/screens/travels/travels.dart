@@ -31,42 +31,47 @@ class _MyTravelsState extends State<MyTravels> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(56),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-              child: SegmentedTabControl(
-                tabPadding: const EdgeInsets.symmetric(horizontal: 8),
-                barDecoration: BoxDecoration(
-                  color: REGISTheme.surface.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                indicatorDecoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                tabs: const [
-                  SegmentTab(
-                    label: 'Todas',
-                    textColor: Colors.white54,
-                    selectedTextColor: REGISTheme.primary,
+            preferredSize: const Size.fromHeight(72),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth == 0) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                  child: SegmentedTabControl(
+                    tabPadding: const EdgeInsets.symmetric(horizontal: 8),
+                    barDecoration: BoxDecoration(
+                      color: REGISTheme.surface.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    indicatorDecoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    tabs: const [
+                      SegmentTab(
+                        label: 'Todas',
+                        textColor: Colors.white54,
+                        selectedTextColor: REGISTheme.primary,
+                      ),
+                      SegmentTab(
+                        label: 'Pendentes',
+                        textColor: Colors.white54,
+                        selectedTextColor: REGISTheme.primary,
+                      ),
+                      SegmentTab(
+                        label: 'Confirmadas',
+                        textColor: Colors.white54,
+                        selectedTextColor: REGISTheme.primary,
+                      ),
+                      SegmentTab(
+                        label: 'Concluídas',
+                        textColor: Colors.white54,
+                        selectedTextColor: REGISTheme.primary,
+                      ),
+                    ],
                   ),
-                  SegmentTab(
-                    label: 'Pendentes',
-                    textColor: Colors.white54,
-                    selectedTextColor: REGISTheme.primary,
-                  ),
-                  SegmentTab(
-                    label: 'Confirmadas',
-                    textColor: Colors.white54,
-                    selectedTextColor: REGISTheme.primary,
-                  ),
-                  SegmentTab(
-                    label: 'Concluídas',
-                    textColor: Colors.white54,
-                    selectedTextColor: REGISTheme.primary,
-                  ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ),

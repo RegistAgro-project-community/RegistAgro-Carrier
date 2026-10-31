@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/auth/login/login.dart';
@@ -8,7 +10,7 @@ import 'package:registagrodriver/screens/profile/profile_class.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Profile {
-  logout(BuildContext context) async {
+  Future<void> logout(BuildContext context) async {
     final tokenClass = TokenStorage();
     final logoutResult = await tokenClass.logout();
 
@@ -21,23 +23,25 @@ class Profile {
           return const Center(
             child: CircularProgressIndicator(
               color: Colors.white,
-              strokeWidth: 2,            
-            ));
+              strokeWidth: 2,
+            ),
+          );
         },
       );
 
       await Future.delayed(const Duration(milliseconds: 1000));
 
+      Navigator.of(context).pop();
       showTopNotification(
         context,
-        title: "Sucess",
+        title: "Success",
         description: "Sessão terminada com sucesso",
         backgroundColor: Colors.green,
         icon: Icons.verified,
       );
 
       final prefes = await SharedPreferences.getInstance();
-      prefes.setString("last_route", '/');
+      await prefes.setString("last_route", '/');
 
       Navigator.pushAndRemoveUntil(
         context,
@@ -55,25 +59,25 @@ class Profile {
     }
   }
 
-  Future<UserModel> userData(BuildContext context) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(
-        child: CircularProgressIndicator(
-          color: Colors.white,
-          strokeWidth: 2,           
-        )),
-    );
+  Future<UserModel> userData(
+    BuildContext context, {
+    bool showLoading = true,
+  }) async {
+    if (showLoading) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(
+          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+        ),
+      );
+    }
 
     try {
       final tokenMap = await TokenStorage().readToken();
 
       if (tokenMap.containsKey("error") || tokenMap["token"] == null) {
-        handleAuthError(
-          context,
-          tokenMap['error'] ?? "Faça login novamente",
-        );
+        handleAuthError(context, tokenMap['error'] ?? "Faça login novamente");
 
         throw Exception("Error");
       }
@@ -91,7 +95,9 @@ class Profile {
         "https://api-registagro.onrender.com/users/profile",
       );
 
-      Navigator.of(context).pop();
+      if (showLoading && context.mounted) {
+        Navigator.of(context).pop();
+      }
 
       final data = res.data["data"];
 
@@ -99,16 +105,18 @@ class Profile {
         name: data['name'],
         email: data['email'],
         phone: data['phone'],
-        bio: "bio",
+        bio: data["bio"] ?? "",
         province: data['province'],
         adress: data['adress'],
         profile: data['profile'],
-        balance: res.data["balance"]
+        balance: res.data["balance"],
       );
     } on DioException catch (e) {
-      Navigator.of(context, rootNavigator: true).pop();
+      if (showLoading && context.mounted) {
+        Navigator.of(context).pop();
+      }
 
-      String message = "Erro ao carregar produtos";
+      String message = "Erro ao carregar seus dados";
 
       if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
         message = e.response?.data?['error'] ?? 'Sessão expirada';
@@ -121,23 +129,25 @@ class Profile {
             e.message ??
             message;
 
+        e.response?.data["error"] != null || e.response?.data["info"] != null ? 
         showTopNotification(
           context,
           title: "Error",
           description: message,
           backgroundColor: Colors.red.shade700,
           icon: Icons.error_outline,
-        );
+        ) :
+
+        print(message);
       }
 
       throw Exception(message);
     } catch (e) {
-      Navigator.of(context).pop();
+      if (showLoading && context.mounted) {
+        Navigator.of(context).pop();
+      }
 
-      handleAuthError(
-        context,
-        "Ocorreu um erro inesperado",
-      );
+      handleAuthError(context, "Ocorreu um erro inesperado");
 
       throw Exception("Error");
     }
