@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:registagrodriver/repositories/model/transportType.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:registagrodriver/services/logger.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
+import 'package:registagrodriver/utils/upload_validator.dart';
 
 const _typologies = [
   'frigorifico',
@@ -57,14 +59,21 @@ Future<Vehicle?> _showVehicleDialog(
       );
 
       if (pickedFile != null) {
-        selectedImage.value = File(pickedFile.path);
+        final file = File(pickedFile.path);
+        final error = UploadValidator.validateImage(file);
+        if (error != null) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(error), backgroundColor: Colors.red),
+            );
+          }
+          return;
+        }
+        selectedImage.value = file;
         photoController.text = pickedFile.path;
-
-        print(selectedImage.value);
-        print(photoController.text);
       }
     } catch (e) {
-      print("Erro ao selecionar imagem: $e");
+      AppLogger.instance.error('Erro ao seleccionar imagem', error: e);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

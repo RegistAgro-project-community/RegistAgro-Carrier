@@ -1,15 +1,17 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/auth/login/login.dart';
-import 'package:registagrodriver/components/topNotification/top_notification.dart';
+import 'package:registagrodriver/components/safe_notification.dart';
+import 'package:registagrodriver/config/api_config.dart';
+import 'package:registagrodriver/repositories/interfaces/repositories.dart';
 import 'package:registagrodriver/repositories/storage.dart';
 import 'package:registagrodriver/screens/Onboarding_screen/onboarding_screen.dart';
 import 'package:registagrodriver/screens/profile/profile_class.dart';
+import 'package:registagrodriver/services/dio_client.dart';
+import 'package:registagrodriver/utils/safe_error.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class Profile {
+class Profile implements IProfileRepository {
   Future<void> logout(BuildContext context) async {
     final tokenClass = TokenStorage();
     final logoutResult = await tokenClass.logout();
@@ -31,28 +33,30 @@ class Profile {
 
       await Future.delayed(const Duration(milliseconds: 1000));
 
+      if (!context.mounted) return;
       Navigator.of(context).pop();
-      showTopNotification(
+      showSafeNotification(
         context,
-        title: "Success",
-        description: "Sessão terminada com sucesso",
+        title: 'Sucesso',
+        description: 'Sessão terminada com sucesso',
         backgroundColor: Colors.green,
         icon: Icons.verified,
       );
 
-      final prefes = await SharedPreferences.getInstance();
-      await prefes.setString("last_route", '/');
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_route', '/');
 
+      if (!context.mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => OnboardingScreen()),
+        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
         (route) => false,
       );
-    } else {
-      showTopNotification(
+    } else if (context.mounted) {
+      showSafeNotification(
         context,
-        title: "Error",
-        description: "Não foi possível fazer terminar sessão",
+        title: 'Erro',
+        description: 'Não foi possível terminar sessão',
         backgroundColor: Colors.amber,
         icon: Icons.error_outline,
       );
@@ -76,69 +80,53 @@ class Profile {
     try {
       final tokenMap = await TokenStorage().readToken();
 
-      if (tokenMap.containsKey("error") || tokenMap["token"] == null) {
-        handleAuthError(context, tokenMap['error'] ?? "Faça login novamente");
-
-        throw Exception("Error");
+      if (tokenMap.containsKey('error') || tokenMap['token'] == null) {
+        handleAuthError(
+          context,
+          tokenMap['error'] ?? SafeErrorMessages.sessionExpired,
+        );
+        throw Exception('Error');
       }
 
-      final dio = Dio(
-        BaseOptions(
-          headers: {
-            "content-type": "application/json",
-            "authorization": "Bearer ${tokenMap["token"]}",
-          },
-        ),
-      );
-
-      final res = await dio.get(
-        "https://api-registagro.onrender.com/users/profile",
-      );
+      final dio = DioClient().dio;
+      final res = await dio.get(ApiConfig.userProfile);
 
       if (showLoading && context.mounted) {
         Navigator.of(context).pop();
       }
 
-      final data = res.data["data"];
+      final data = res.data['data'];
+      final userId = data['id']?.toString() ?? data['userId']?.toString();
+      if (userId != null && userId.isNotEmpty) {
+        await TokenStorage().storeCarrierId(userId);
+      }
 
       return UserModel(
-        name: data['name'],
-        email: data['email'],
-        phone: data['phone'],
-        bio: data["bio"] ?? "",
-        province: data['province'],
-        adress: data['adress'],
-        profile: data['profile'],
-        balance: res.data["balance"],
-      );
+              id: userId,
+              name: data['name'] as String?,
+              email: data['email'] as String?,
+              phone: data['phone'] as String?,
+              bio: data['bio'] as String? ?? '',
+              province: data['province'] as String?,
+              adress: data['adress'] as String?,
+              profile: data['profile'] as String?,
+              balance: res.data['balance']?.toString() ?? '0',
+            );
     } on DioException catch (e) {
       if (showLoading && context.mounted) {
         Navigator.of(context).pop();
       }
 
-      String message = "Erro ao carregar seus dados";
+      final message = SafeErrorMessages.fromDio(e);
 
       if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
-        message = e.response?.data?['error'] ?? 'Sessão expirada';
-
-        handleAuthError(context, message);
-      } else {
-        message =
-            e.response?.data?['error'] ??
-            e.response?.data?['info'] ??
-            e.message ??
-            message;
-
-        e.response?.data["error"] != null || e.response?.data["info"] != null ? 
-        showTopNotification(
+        handleAuthError(context, SafeErrorMessages.sessionExpired);
+      } else if (context.mounted) {
+        showSafeNotification(
           context,
-          title: "Error",
+          title: 'Erro',
           description: message,
-          backgroundColor: Colors.red.shade700,
-          icon: Icons.error_outline,
-        ) :
-
-        print(message);
+        );
       }
 
       throw Exception(message);
@@ -147,28 +135,27 @@ class Profile {
         Navigator.of(context).pop();
       }
 
-      handleAuthError(context, "Ocorreu um erro inesperado");
-
-      throw Exception("Error");
+      handleAuthError(context, SafeErrorMessages.generic);
+      throw Exception('Error');
     }
   }
 
   void handleAuthError(BuildContext context, String message) {
-    showTopNotification(
+    showSafeNotification(
       context,
-      title: "Error",
-      description: message,
+      title: 'Erro',
+      description: SafeErrorMessages.sanitize(message),
       backgroundColor: Colors.amber,
       icon: Icons.error_outline,
     );
 
     SharedPreferences.getInstance().then((prefs) {
-      prefs.setString("last_route", '/');
+      prefs.setString('last_route', '/');
     });
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => Login()),
+      MaterialPageRoute(builder: (context) => const Login()),
       (route) => false,
     );
   }

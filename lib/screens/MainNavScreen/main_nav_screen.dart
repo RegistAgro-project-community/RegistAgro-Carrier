@@ -39,13 +39,13 @@ class _MainNavScreenState extends State<MainNavScreen> {
       _loadAllData();
     });
 
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+   /* _timer = Timer.periodic(const Duration(seconds: 60), (_) {
       if (!isFirstLoad) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _refreshAllData();
         });
       }
-    });
+    });*/
   }
 
   List<Widget> get _screens => [
@@ -80,16 +80,13 @@ class _MainNavScreenState extends State<MainNavScreen> {
     await Future.wait([_loadRequests(), _loadVehicles(), _loadUserData()]);
   }
 
-  Future<void> _refreshAllData() async {
-    // ignore: avoid_print
-    print("Renderizou");
-
+  /*Future<void> _refreshAllData() async {
     await Future.wait([
       _loadRequests(showLoading: false),
       _loadUserData(showLoading: false),
       _loadVehicles(showLoading: false),
     ]);
-  }
+  }*/
 
   Future<void> _loadRequests({bool showLoading = true}) async {
     if (!mounted) return;
@@ -120,30 +117,30 @@ class _MainNavScreenState extends State<MainNavScreen> {
   }
 
   Future<void> _loadUserData({bool showLoading = true}) async {
-    if (!mounted) return;
-    setState(() {
-      isloading = true;
-    });
-
-    try {
-      final data = await Profile().userData(context, showLoading: showLoading);
-
       if (!mounted) return;
       setState(() {
-        name = data.name.split(" ")[0];
-        userData = data;
+        isloading = true;
+      });
 
-        errorMessage = null;
-        isloading = false;
-      });
-    } on Exception catch (e) {
-      if (!mounted) return;
-      setState(() {
-        errorMessage = e.toString();
-        isloading = false;
-      });
+      try {
+        final data = await Profile().userData(context, showLoading: showLoading);
+
+        if (!mounted) return;
+        setState(() {
+          name = data.name?.split(" ")[0];
+          userData = data;
+
+          errorMessage = null;
+          isloading = false;
+        });
+      } on Exception catch (e) {
+        if (!mounted) return;
+        setState(() {
+          errorMessage = e.toString();
+          isloading = false;
+        });
+      }
     }
-  }
 
   Future<void> _loadVehicles({bool showLoading = true}) async {
     if (!mounted) return;

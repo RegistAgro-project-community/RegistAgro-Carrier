@@ -2,9 +2,11 @@ import 'package:elegant_notification/elegant_notification.dart';
 import 'package:elegant_notification/resources/arrays.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:registagrodriver/components/topNotification/top_notification.dart';
+import 'package:registagrodriver/components/safe_notification.dart';
 import 'package:registagrodriver/repositories/transportRequest.dart';
+import 'package:registagrodriver/services/logger.dart';
 import 'package:registagrodriver/theme/app_theme.dart';
+import 'package:registagrodriver/utils/safe_error.dart';
 
 class TripCard extends StatefulWidget {
   final String requestId;
@@ -17,6 +19,8 @@ class TripCard extends StatefulWidget {
   final String oferta;
   final VoidCallback onIniciar;
   final String photo;
+  final bool canAccept;
+  final bool canFinish;
 
   const TripCard({
     super.key,
@@ -30,6 +34,8 @@ class TripCard extends StatefulWidget {
     required this.oferta,
     required this.onIniciar,
     required this.photo,
+    this.canAccept = true,
+    this.canFinish = true,
   });
 
   @override
@@ -39,7 +45,7 @@ class TripCard extends StatefulWidget {
 class _TripCardState extends State<TripCard>
     with SingleTickerProviderStateMixin {
   bool _expandido = false;
-  bool _viagemIniciada = false;
+  final bool _viagemIniciada = false;
   bool _viagemFinalizada = false;
   late AnimationController _controller;
   late Animation<double> _expandAnimation;
@@ -76,10 +82,10 @@ class _TripCardState extends State<TripCard>
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
         if (!mounted) return;
-        showTopNotification(
+        showSafeNotification(
           context,
-          title: "Error",
-          description: "Localização não permitida",
+          title: 'Erro',
+          description: 'Localização não permitida',
           backgroundColor: Colors.amber,
           icon: Icons.error_outline,
         );
@@ -116,10 +122,10 @@ class _TripCardState extends State<TripCard>
       ).show(context);
     } catch (e) {
       if (!mounted) return;
-      showTopNotification(
+      showSafeNotification(
         context,
-        title: "Error",
-        description: "Ocorreu um erro ao aceitar solicitação",
+        title: 'Erro',
+        description: 'Ocorreu um erro ao aceitar solicitação',
         backgroundColor: Colors.amber,
         icon: Icons.error_outline,
       );
@@ -164,8 +170,17 @@ class _TripCardState extends State<TripCard>
                   animation: AnimationType.fromTop,
                   // ignore: use_build_context_synchronously
                 ).show(context);
-              } on Exception catch (_) {
-                print("Erro ao finalizar escoamento");
+              } on Exception catch (e) {
+                AppLogger.instance.error(
+                  'Erro ao finalizar escoamento',
+                  error: e,
+                );
+                if (!outerContext.mounted) return;
+                showSafeNotification(
+                  outerContext,
+                  title: 'Erro',
+                  description: SafeErrorMessages.generic,
+                );
               }
             },
             style: ElevatedButton.styleFrom(
@@ -406,8 +421,8 @@ class _TripCardState extends State<TripCard>
             Padding(
               padding: const EdgeInsets.all(15),
               child:
-                  widget.status == "aguardando_coleta" ||
-                      widget.status == "em_transporte"
+                  widget.status == 'aguardando_coleta' ||
+                      widget.status == 'em_transporte'
                   ? Row(
                       children: [
                         Expanded(
@@ -435,62 +450,63 @@ class _TripCardState extends State<TripCard>
                             ),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        ?widget.status == "em_transporte"
-                            ? Expanded(
-                                child: ElevatedButton(
-                                  onPressed: _onFinalizarCorrida,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green.shade600,
-                                    foregroundColor: Colors.white,
-                                    minimumSize: const Size(0, 45),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    textStyle: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  child: const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.check_circle_outline,
-                                        size: 18,
-                                      ),
-                                      SizedBox(width: 6),
-                                      Text('Finalizar'),
-                                    ],
-                                  ),
+                        if (widget.canFinish &&
+                            widget.status == 'em_transporte') ...[
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: _onFinalizarCorrida,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green.shade600,
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size(0, 45),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                              )
-                            : null,
+                                textStyle: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.check_circle_outline, size: 18),
+                                  SizedBox(width: 6),
+                                  Text('Finalizar'),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     )
-                  : ElevatedButton(
-                      onPressed: () => _onIniciarViagem(widget.requestId),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: REGISTheme.surface,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 45),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.play_arrow_rounded, size: 18),
-                          SizedBox(width: 8),
-                          Text('Iniciar viagem'),
-                        ],
-                      ),
-                    ),
+                  : widget.canAccept
+                      ? ElevatedButton(
+                          onPressed: () =>
+                              _onIniciarViagem(widget.requestId),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: REGISTheme.surface,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(double.infinity, 45),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.play_arrow_rounded, size: 18),
+                              SizedBox(width: 8),
+                              Text('Iniciar viagem'),
+                            ],
+                          ),
+                        )
+                      : const SizedBox.shrink(),
             ),
         ],
       ),

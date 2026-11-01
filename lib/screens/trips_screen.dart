@@ -96,105 +96,83 @@ class TripItem extends StatelessWidget {
   const TripItem({super.key, required this.trip, required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
-    Color statusColor;
-    String statusLabel;
-    
-    switch (trip.status) {
-      case TripStatus.pending:
-        statusColor = REGISTheme.warning;
-        statusLabel = 'pendente';
-        break;
-      case TripStatus.inProgress:
-        statusColor = REGISTheme.accentLight;
-        statusLabel = 'em_transporte';
-        break;
-      case TripStatus.completed:
-        statusColor = REGISTheme.success;
-        statusLabel = 'entregue';
-        break;
-      case TripStatus.cancelled:
-        statusColor = REGISTheme.danger;
-        statusLabel = 'rejeitada';
-        break;
-    }
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: REGISTheme.cardBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: REGISTheme.divider),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        trip.origin,
-                        style: const TextStyle(
-                          color: REGISTheme.textPrimary,
-                          fontWeight: FontWeight.w600,
+    Widget build(BuildContext context) {
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: REGISTheme.cardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: REGISTheme.divider),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          trip.origin,
+                          style: const TextStyle(
+                            color: REGISTheme.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      const Icon(Icons.arrow_downward, size: 14, color: REGISTheme.textSecondary),
+                        const Icon(Icons.arrow_downward, size: 14, color: REGISTheme.textSecondary),
+                        Text(
+                          trip.destination,
+                          style: const TextStyle(
+                            color: REGISTheme.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const SizedBox(height: 8),
                       Text(
-                        trip.destination,
+                        '${trip.price.toStringAsFixed(0)} Kz',
                         style: const TextStyle(
-                          color: REGISTheme.textPrimary,
-                          fontWeight: FontWeight.w600,
+                          color: REGISTheme.success,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
                         ),
                       ),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const SizedBox(height: 8),
-                    Text(
-                      '${trip.price.toStringAsFixed(0)} Kz',
-                      style: const TextStyle(
-                        color: REGISTheme.success,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const Divider(color: REGISTheme.divider, height: 20),
-            Row(
-              children: [
-                const Icon(Icons.schedule_rounded, size: 14, color: REGISTheme.textSecondary),
-                const SizedBox(width: 4),
-                Text(
-                  _formatDateTime(trip.departureTime),
-                  style: const TextStyle(color: REGISTheme.textSecondary, fontSize: 12),
-                ),
-                const SizedBox(width: 16),
-                const Icon(Icons.people_outline, size: 14, color: REGISTheme.textSecondary),
-                const SizedBox(width: 4),
-                Text(
-                  '${trip.passengers.length} passageiros',
-                  style: const TextStyle(color: REGISTheme.textSecondary, fontSize: 12),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              const Divider(color: REGISTheme.divider, height: 20),
+              Row(
+                children: [
+                  const Icon(Icons.schedule_rounded, size: 14, color: REGISTheme.textSecondary),
+                  const SizedBox(width: 4),
+                  Text(
+                    _formatDateTime(trip.departureTime),
+                    style: const TextStyle(color: REGISTheme.textSecondary, fontSize: 12),
+                  ),
+                  const SizedBox(width: 16),
+                  const Icon(Icons.people_outline, size: 14, color: REGISTheme.textSecondary),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${trip.passengers.length} passageiros',
+                    style: const TextStyle(color: REGISTheme.textSecondary, fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
   String _formatDateTime(DateTime dt) {
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';

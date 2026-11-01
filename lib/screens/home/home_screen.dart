@@ -164,6 +164,8 @@ class _HomeScreen extends State<HomeScreen> {
                             produto: c.order.productName ?? "",
                             oferta: c.order.earning ?? "",
                             photo: c.farm.profile ?? "",
+                            canAccept: c.canAccept(),
+                            canFinish: c.canFinish(),
                             onIniciar: () => showFollwoUp(context, c.id!),
                           );
                         },

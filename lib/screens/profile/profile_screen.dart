@@ -41,155 +41,155 @@ class _ProfileScreenState extends State<ProfileScreen> {
   );
 
   @override
-  Widget build(BuildContext context) {
-    user = UserModel(
-      name: widget.name ?? user.name,
-      email: widget.email ?? user.email,
-      phone: widget.phone ?? user.phone,
-      bio: user.bio,
-      province: widget.province ?? user.province,
-      adress: widget.adress ?? user.adress,
-      profile: widget.photo,
-      balance: widget.balance ?? user.balance,
-    );
+    Widget build(BuildContext context) {
+      user = UserModel(
+        name: widget.name ?? user.name,
+        email: widget.email ?? user.email,
+        phone: widget.phone ?? user.phone,
+        bio: user.bio,
+        province: widget.province ?? user.province,
+        adress: widget.adress ?? user.adress,
+        profile: widget.photo,
+        balance: widget.balance ?? user.balance,
+      );
 
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                color: REGISTheme.surface,
-                border: Border(bottom: BorderSide(color: REGISTheme.divider)),
-              ),
-              child: Column(
-                children: [
-                  SizedBox(height: 50),
-                  Stack(
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: REGISTheme.accent,
-                            width: 3,
+      return Scaffold(
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: const BoxDecoration(
+                  color: REGISTheme.surface,
+                  border: Border(bottom: BorderSide(color: REGISTheme.divider)),
+                ),
+                child: Column(
+                  children: [
+                    SizedBox(height: 50),
+                    Stack(
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: REGISTheme.accent,
+                              width: 3,
+                            ),
+                            // ignore: deprecated_member_use
+                            color: REGISTheme.accent.withOpacity(0.2),
                           ),
-                          // ignore: deprecated_member_use
-                          color: REGISTheme.accent.withOpacity(0.2),
-                        ),
-                        child: Center(
-                          child: CircleAvatar(
-                            radius: 42,
-                            backgroundColor: Colors.white,
-                            backgroundImage: user.profile != ""
-                                ? NetworkImage(user.profile ?? "")
-                                : null,
-                            child: user.profile == ""
-                                ? const Icon(
-                                    Icons.person,
-                                    size: 52,
-                                    color: REGISTheme.accentLight,
-                                  )
-                                : null,
+                          child: Center(
+                            child: CircleAvatar(
+                              radius: 42,
+                              backgroundColor: Colors.white,
+                              backgroundImage: user.profile != ""
+                                  ? NetworkImage(user.profile ?? "")
+                                  : null,
+                              child: user.profile == ""
+                                  ? const Icon(
+                                      Icons.person,
+                                      size: 52,
+                                      color: REGISTheme.accentLight,
+                                    )
+                                  : null,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    user.name,
-                    style: const TextStyle(
-                      color: REGISTheme.textPrimary,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _StatItem(value: "${widget.totalTrip ?? 0}", label: 'Viagens'),
-                      _divider(),
-                      _StatItem(
-                        value: user.balance,
-                        label: 'Ganhos',
-                        icon: Icons.attach_money_outlined,
+                    const SizedBox(height: 12),
+                    Text(
+                      user.name ?? '',
+                      style: const TextStyle(
+                        color: REGISTheme.textPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 4),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _StatItem(value: "${widget.totalTrip ?? 0}", label: 'Viagens'),
+                        _divider(),
+                        _StatItem(
+                          value: user.balance,
+                          label: 'Ganhos',
+                          icon: Icons.attach_money_outlined,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Informações Pessoais',
-                    style: TextStyle(
-                      color: REGISTheme.textSecondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _InfoCard(
-                    children: [
-                      _ProfileRow(
-                        icon: Icons.person_outline,
-                        label: 'Nome',
-                        value: user.name,
-                      ),
-                      _ProfileRow(
-                        icon: Icons.email_outlined,
-                        label: 'Email',
-                        value: user.email,
-                      ),
-                      _ProfileRow(
-                        icon: Icons.phone_outlined,
-                        label: 'Telefone',
-                        value: user.phone,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 210),
-                  _InfoCard(
-                    children: [
-                      _SettingRow(
-                        icon: Icons.logout_rounded,
-                        label: 'Sair',
-                        color: REGISTheme.danger,
-                        onTap: () => _confirmLogout(context),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Center(
-                    child: Text(
-                      'RegistAgro v1.0.0 • Transport Information System',
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Informações Pessoais',
                       style: TextStyle(
-                        // ignore: deprecated_member_use
-                        color: REGISTheme.textSecondary.withOpacity(0.5),
-                        fontSize: 11,
+                        color: REGISTheme.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 8),
+                    _InfoCard(
+                      children: [
+                        _ProfileRow(
+                          icon: Icons.person_outline,
+                          label: 'Nome',
+                          value: user.name ?? '',
+                        ),
+                        _ProfileRow(
+                          icon: Icons.email_outlined,
+                          label: 'Email',
+                          value: user.email ?? '',
+                        ),
+                        _ProfileRow(
+                          icon: Icons.phone_outlined,
+                          label: 'Telefone',
+                          value: user.phone ?? '',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 210),
+                    _InfoCard(
+                      children: [
+                        _SettingRow(
+                          icon: Icons.logout_rounded,
+                          label: 'Sair',
+                          color: REGISTheme.danger,
+                          onTap: () => _confirmLogout(context),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Center(
+                      child: Text(
+                        'RegistAgro v1.0.0 • Transport Information System',
+                        style: TextStyle(
+                          // ignore: deprecated_member_use
+                          color: REGISTheme.textSecondary.withOpacity(0.5),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
   Widget _divider() =>
       Container(height: 32, width: 1, color: REGISTheme.divider);

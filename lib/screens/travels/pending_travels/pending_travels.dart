@@ -55,6 +55,8 @@ class _PendingTabState extends State<PendingTab> {
                       produto: c.order.productName!,
                       oferta: c.order.earning!,
                       photo: c.farm.profile!,
+                      canAccept: c.canAccept(),
+                      canFinish: c.canFinish(),
                       onIniciar: () => showFollwoUp(context, c.id!),
                     ),
                   );

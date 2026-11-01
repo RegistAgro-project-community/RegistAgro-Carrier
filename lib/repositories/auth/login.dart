@@ -1,35 +1,77 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:registagrodriver/config/api_config.dart';
+import 'package:registagrodriver/repositories/interfaces/repositories.dart';
 import 'package:registagrodriver/repositories/storage.dart';
+import 'package:registagrodriver/services/dio_client.dart';
+import 'package:registagrodriver/utils/safe_error.dart';
 
-final dio = Dio(BaseOptions(headers: {'Content-Type': 'application/json'}));
-final storeToken = TokenStorage();
+/// Auth repository — SRP: API auth only (no UI).
+class AuthRepository implements IAuthRepository {
+  AuthRepository({
+    Dio? dio,
+    TokenStorage? tokenStorage,
+  })  : _dio = dio,
+        _tokenStorage = tokenStorage ?? TokenStorage();
 
-Future<Map<String, String>> login(
-  BuildContext context,
-  String email,
-  String password,
-) async {
-  final data = {'email': email, 'password': password};
-  
-  try {
-    final res = await dio.post(
-      'https://api-registagro.onrender.com/auth/login/carrier',
-      data: data,
-    );
+  final Dio? _dio;
+  final TokenStorage _tokenStorage;
 
-    final authHeader = res.headers.value('authorization');
-    final token = authHeader?.split(" ")[1];
+  Dio get _client => _dio ?? DioClient().dio;
 
-    final stored = await storeToken.storeToken(token!);
-
-    if (stored) {
-      return {'message': res.data["message"]};
+  @override
+  Future<Map<String, String>> login(
+    String email,
+    String password, {
+    String? captchaToken,
+  }) async {
+    final data = <String, dynamic>{
+      'email': email,
+      'password': password,
+    };
+    if (captchaToken != null && captchaToken.isNotEmpty) {
+      data['captchaToken'] = captchaToken;
     }
 
-    return {'error': "Não foi possível fazer login"};
-  } on DioException catch (e) {
+    try {
+      final res = await _client.post(ApiConfig.carrierLogin, data: data);
 
-    return {"error": e.response?.data["error"] ?? "Ocorreu um erro ao fazer login"};
+      final authHeader = res.headers.value('authorization');
+      final token = authHeader?.split(' ').last;
+
+      if (token == null || token.isEmpty) {
+        return {'error': SafeErrorMessages.generic};
+      }
+
+      final stored = await _tokenStorage.storeToken(token);
+      if (!stored) {
+        return {'error': SafeErrorMessages.generic};
+      }
+
+      final userId =
+          res.data is Map ? res.data['userId'] ?? res.data['id'] : null;
+      if (userId is String && userId.isNotEmpty) {
+        await _tokenStorage.storeCarrierId(userId);
+      }
+
+      return {
+        'message': res.data['message']?.toString() ?? 'Login efectuado',
+      };
+    } on DioException catch (e) {
+      return {'error': SafeErrorMessages.fromDio(e)};
+    }
   }
+}
+
+/// Thin wrapper kept for existing call sites (migration path).
+Future<Map<String, String>> login(
+  dynamic context,
+  String email,
+  String password, {
+  String? captchaToken,
+}) {
+  return AuthRepository().login(
+    email,
+    password,
+    captchaToken: captchaToken,
+  );
 }

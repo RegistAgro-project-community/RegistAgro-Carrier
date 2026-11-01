@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
-import 'package:registagrodriver/components/google_maps/maps_screen.dart';
+import 'package:registagrodriver/screens/map/map_screen.dart';
 
 void showFollwoUp(BuildContext context, String requestId) {
   showModalBottomSheet(
@@ -66,33 +65,9 @@ void showFollwoUp(BuildContext context, String requestId) {
                           SizedBox(
                             height: totalHeight * 0.90,
                             child: SafeArea(
-                              child: MapScreen(requestId: requestId,),
+                              child: MapScreen(requestId: requestId),
                             ),
                           ),
-                          // Padding(
-                          //   padding: const EdgeInsets.symmetric(horizontal: 16),
-                          //   child: Container(
-                          //     padding: const EdgeInsets.all(14),
-                          //     decoration: BoxDecoration(
-                          //       color: Colors.grey.shade100,
-                          //       borderRadius: BorderRadius.circular(14),
-                          //     ),
-                          //     child: const Column(
-                          //       crossAxisAlignment: CrossAxisAlignment.start,
-                          //       children: [
-                          //         Text(
-                          //           'Detalhes da corrida',
-                          //           style: TextStyle(
-                          //             fontSize: 16,
-                          //             fontWeight: FontWeight.bold,
-                          //           ),
-                          //         ),
-                          //         SizedBox(height: 10),
-                          //         Text('Acompanhe a localização em tempo real.',),
-                          //       ],
-                          //     ),
-                          //   ),
-                          // ),
                         ],
                       ),
                     ),

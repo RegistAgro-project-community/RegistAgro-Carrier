@@ -2,6 +2,7 @@ import 'dart:io';
 
 class Transport {
   final String? id;
+  final String? carrierId;
   final String? status;
   final String? delivered_at;
   final String? start_at;
@@ -11,6 +12,7 @@ class Transport {
 
   Transport({
     required this.id,
+    this.carrierId,
     required this.delivered_at,
     required this.start_at,
     required this.status,
@@ -20,17 +22,37 @@ class Transport {
   });
 
   factory Transport.fromJson(Map<String, dynamic> json) {
-    return Transport(
-      id: json["id"] as String? ?? "",
-      status: json["status"] as String? ?? "inválido",
-      start_at: json["start_at"],
-      delivered_at: json["delivered_at"],
-      farm: Farm.fromJson((json['farm'] as Map<String, dynamic>?) ?? {}),
-      order: Order.fromJson((json['order'] as Map<String, dynamic>?) ?? {}),
-      vehicle: Vehicle.fromJson(
-        (json['vehicle'] as Map<String, dynamic>?) ?? {},
-      ),
-    );
+      return Transport(
+        id: json['id'] as String? ?? '',
+        carrierId: json['carrierId'] as String? ??
+            json['carrier_id'] as String? ??
+            '',
+        status: json['status'] as String? ?? 'inválido',
+        start_at: json['start_at'] as String?,
+        delivered_at: json['delivered_at'] as String?,
+        farm: Farm.fromJson((json['farm'] as Map<String, dynamic>?) ?? {}),
+        order: Order.fromJson((json['order'] as Map<String, dynamic>?) ?? {}),
+        vehicle: Vehicle.fromJson(
+          (json['vehicle'] as Map<String, dynamic>?) ?? {},
+        ),
+      );
+    }
+
+  /// UI ownership filter — backend remains the real barrier.
+  bool canAccept([String? currentCarrierId]) {
+    final s = status?.toLowerCase() ?? '';
+    if (s != 'pendente') return false;
+    if (carrierId == null || carrierId!.isEmpty) return true;
+    if (currentCarrierId == null || currentCarrierId.isEmpty) return false;
+    return carrierId == currentCarrierId;
+  }
+
+  bool canFinish([String? currentCarrierId]) {
+    final s = status?.toLowerCase() ?? '';
+    if (s != 'em_transporte') return false;
+    if (carrierId == null || carrierId!.isEmpty) return true;
+    if (currentCarrierId == null || currentCarrierId.isEmpty) return false;
+    return carrierId == currentCarrierId;
   }
 }
 
@@ -53,12 +75,12 @@ class Farm {
 
   factory Farm.fromJson(Map<String, dynamic> json) {
     return Farm(
-      id: json["id"] as String? ?? "",
-      name: json["name"] as String? ?? "Sem nome",
-      phone: json["phone"] as String? ?? "Sem telefone",
-      province: json["province"] as String? ?? "Sem província",
-      adress: json["adress"] as String? ?? "Sem endereço",
-      profile: json["profile"] as String? ?? "",
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? 'Sem nome',
+      phone: json['phone'] as String? ?? 'Sem telefone',
+      province: json['province'] as String? ?? 'Sem província',
+      adress: json['adress'] as String? ?? 'Sem endereço',
+      profile: json['profile'] as String? ?? '',
     );
   }
 }
@@ -84,13 +106,13 @@ class Order {
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
-      productId: json["product_id"] as String? ?? "",
-      delivery_adress: json["delivery_adress"] as String? ?? "Sem endereço",
-      productName: json["productName"] as String? ?? "Sem nome",
-      earning: json["earning"] as String? ?? "Valor Inválido",
-      photo: json["photo"] as String? ?? "",
-      price: json["price"] as String? ?? "Preço ionválido",
-      qtd: json["qtd"] as String? ?? "qtd inválida",
+      productId: json['product_id'] as String? ?? '',
+      delivery_adress: json['delivery_adress'] as String? ?? 'Sem endereço',
+      productName: json['productName'] as String? ?? 'Sem nome',
+      earning: json['earning'] as String? ?? 'Valor Inválido',
+      photo: json['photo'] as String? ?? '',
+      price: json['price'] as String? ?? 'Preço ionválido',
+      qtd: json['qtd'] as String? ?? 'qtd inválida',
     );
   }
 }
@@ -113,17 +135,18 @@ class Vehicle {
     required this.plate,
     required this.type,
     this.imageFile,
-    this.unit
+    this.unit,
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
     return Vehicle(
-      id: json["id"] as String? ?? "",
-      brand: json["brand"] as String? ?? "Sem marca",
-      plate: json["plate"] as String? ?? "Sem placa",
-      capacity: json["capacity"] as String? ?? "sem capacidade",
-      photo: json["photo"] as String? ?? "",
-      type: json["type"] as String? ?? "tipo inválido",
+      id: json['id'] as String? ?? '',
+      brand: json['brand'] as String? ?? 'Sem marca',
+      plate: json['plate'] as String? ?? 'Sem placa',
+      capacity: json['capacity'] as String? ?? 'sem capacidade',
+      photo: json['photo'] as String? ?? '',
+      type: json['type'] as String? ?? 'tipo inválido',
+      unit: json['unit'] as String?,
     );
   }
 }

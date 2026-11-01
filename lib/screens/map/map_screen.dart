@@ -1,24 +1,25 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import 'package:registagrodriver/components/google_maps/location_provider.dart';
+import 'package:registagrodriver/models/geo_point.dart';
+import 'package:registagrodriver/providers/location_provider.dart';
 
+/// Map screen using OpenStreetMap tiles + OSRM route (unified with Web).
 class MapScreen extends StatefulWidget {
   final String requestId;
   const MapScreen({super.key, required this.requestId});
+
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
-  gmaps.GoogleMapController? _mapController;
+  final MapController _mapController = MapController();
   bool _modoDestino = false;
-  final Completer<gmaps.GoogleMapController> _controllerCompleter = Completer();
 
-  static const gmaps.LatLng _defaultLatLng = gmaps.LatLng(-8.8583, 13.2312);
+  static const LatLng _defaultLatLng = LatLng(-8.8583, 13.2312);
 
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
@@ -39,91 +40,52 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final loc = context.read<SourceLocationProvider>();
       await loc.fetchCurrentLocation(widget.requestId);
-      
-       await Future.wait([
-        loc.fetchCurrentLocation(widget.requestId),
-        _controllerCompleter.future,
-      ]);
-      
       if (!mounted) return;
 
-      if (loc.currentLatLng != null && loc.destinationLatLng != null) {
-        final bounds = gmaps.LatLngBounds(
-          southwest: gmaps.LatLng(
-            loc.currentLatLng!.latitude < loc.destinationLatLng!.latitude
-                ? loc.currentLatLng!.latitude
-                : loc.destinationLatLng!.latitude,
-            loc.currentLatLng!.longitude < loc.destinationLatLng!.longitude
-                ? loc.currentLatLng!.longitude
-                : loc.destinationLatLng!.longitude,
-          ),
-          northeast: gmaps.LatLng(
-            loc.currentLatLng!.latitude > loc.destinationLatLng!.latitude
-                ? loc.currentLatLng!.latitude
-                : loc.destinationLatLng!.latitude,
-            loc.currentLatLng!.longitude > loc.destinationLatLng!.longitude
-                ? loc.currentLatLng!.longitude
-                : loc.destinationLatLng!.longitude,
-          ),
-        );
-        _mapController?.animateCamera(
-          gmaps.CameraUpdate.newLatLngBounds(bounds, 80),
-        );
-      } else if (loc.currentLatLng != null) {
-        _mapController?.animateCamera(
-          gmaps.CameraUpdate.newLatLngZoom(loc.currentLatLng!, 15),
-        );
-      }
-
+      _fitBounds(loc);
       _slideController.forward();
     });
   }
 
-  Set<gmaps.Polyline> _buildPolylines(SourceLocationProvider loc) {
-    if (loc.currentLatLng == null || loc.destinationLatLng == null) return {};
-    return {
-      gmaps.Polyline(
-        polylineId: const gmaps.PolylineId('rota'),
-        points: [loc.currentLatLng!, loc.destinationLatLng!],
-        color: Colors.blue.shade700,
-        width: 5,
-      ),
-    };
+  LatLng _toLatLng(GeoPoint p) => LatLng(p.latitude, p.longitude);
+
+  void _fitBounds(SourceLocationProvider loc) {
+    if (loc.currentPoint != null && loc.destinationPoint != null) {
+      final points = [
+        _toLatLng(loc.currentPoint!),
+        _toLatLng(loc.destinationPoint!),
+        ...loc.routePoints.map(_toLatLng),
+      ];
+      final bounds = LatLngBounds.fromPoints(points);
+      _mapController.fitCamera(
+        CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(80)),
+      );
+    } else if (loc.currentPoint != null) {
+      _mapController.move(_toLatLng(loc.currentPoint!), 15);
+    }
   }
 
-  Set<gmaps.Marker> _buildMarkers(SourceLocationProvider loc) {
-    final markers = <gmaps.Marker>{};
+  List<Marker> _buildMarkers(SourceLocationProvider loc) {
+    final markers = <Marker>[];
 
-    if (loc.currentLatLng != null) {
+    if (loc.currentPoint != null) {
       markers.add(
-        gmaps.Marker(
-          markerId: const gmaps.MarkerId('origem'),
-          position: loc.currentLatLng!,
-          icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-            gmaps.BitmapDescriptor.hueGreen,
-          ),
-          infoWindow: gmaps.InfoWindow(
-            title: 'Origem',
-            snippet: loc.currentAddress.isNotEmpty ? loc.currentAddress : null,
-          ),
+        Marker(
+          point: _toLatLng(loc.currentPoint!),
+          width: 40,
+          height: 40,
+          child: Icon(Icons.trip_origin, color: Colors.green.shade700, size: 32),
         ),
       );
     }
 
-    if (loc.destinationLatLng != null) {
+    if (loc.destinationPoint != null) {
       markers.add(
-        gmaps.Marker(
-          markerId: const gmaps.MarkerId('destino'),
-          position: loc.destinationLatLng!,
-          icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-            gmaps.BitmapDescriptor.hueRed,
-          ),
-          infoWindow: gmaps.InfoWindow(
-            title: 'Destino',
-            snippet: loc.destinationAddress.isNotEmpty
-                ? loc.destinationAddress
-                : null,
-          ),
+        Marker(
+          point: _toLatLng(loc.destinationPoint!),
+          width: 40,
+          height: 40,
+          child: Icon(Icons.location_on, color: Colors.red.shade700, size: 36),
         ),
       );
     }
@@ -131,39 +93,26 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     return markers;
   }
 
-  void _onMapTap(
-    gmaps.LatLng latLng,
+  List<Polyline> _buildPolylines(SourceLocationProvider loc) {
+    if (loc.routePoints.length < 2) return const [];
+    return [
+      Polyline(
+        points: loc.routePoints.map(_toLatLng).toList(),
+        color: Colors.blue.shade700,
+        strokeWidth: 5,
+      ),
+    ];
+  }
+
+  Future<void> _onMapTap(
+    LatLng latLng,
     SourceLocationProvider loc,
-    String requestId,
   ) async {
     HapticFeedback.lightImpact();
-
     if (_modoDestino) {
-      await loc.setDestination(requestId);
-
-      if (loc.currentLatLng != null) {
-        final bounds = gmaps.LatLngBounds(
-          southwest: gmaps.LatLng(
-            latLng.latitude < loc.currentLatLng!.latitude
-                ? latLng.latitude
-                : loc.currentLatLng!.latitude,
-            latLng.longitude < loc.currentLatLng!.longitude
-                ? latLng.longitude
-                : loc.currentLatLng!.longitude,
-          ),
-          northeast: gmaps.LatLng(
-            latLng.latitude > loc.currentLatLng!.latitude
-                ? latLng.latitude
-                : loc.currentLatLng!.latitude,
-            latLng.longitude > loc.currentLatLng!.longitude
-                ? latLng.longitude
-                : loc.currentLatLng!.longitude,
-          ),
-        );
-        _mapController?.animateCamera(
-          gmaps.CameraUpdate.newLatLngBounds(bounds, 80),
-        );
-      }
+      await loc.setDestination(widget.requestId);
+      if (!mounted) return;
+      _fitBounds(loc);
     }
   }
 
@@ -179,36 +128,31 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         body: Stack(
           children: [
             Positioned.fill(
-              child: gmaps.GoogleMap(
-                initialCameraPosition: gmaps.CameraPosition(
-                  target: loc.currentLatLng ?? _defaultLatLng,
-                  zoom: 15,
+              child: FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(
+                  initialCenter: loc.currentPoint != null
+                      ? _toLatLng(loc.currentPoint!)
+                      : _defaultLatLng,
+                  initialZoom: 15,
+                  onTap: (_, point) => _onMapTap(point, loc),
                 ),
-                onMapCreated: (controller) {
-                  _mapController = controller;
-                  if (!_controllerCompleter.isCompleted) {
-                    _controllerCompleter.complete(controller);
-                  }
-                },
-                markers: _buildMarkers(loc),
-                polylines: _buildPolylines(loc),
-                myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-                zoomControlsEnabled: false,
-                mapToolbarEnabled: false,
-                compassEnabled: false,
-                scrollGesturesEnabled: true,
-                zoomGesturesEnabled: true,
-                rotateGesturesEnabled: true,
-                tiltGesturesEnabled: true,
-                onTap: (latLng) => _onMapTap(latLng, loc, widget.requestId),
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.registagro.carrier',
+                  ),
+                  PolylineLayer(polylines: _buildPolylines(loc)),
+                  MarkerLayer(markers: _buildMarkers(loc)),
+                ],
               ),
             ),
             if (loc.isLoading)
               Positioned.fill(
                 child: IgnorePointer(
                   child: Container(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     child: const Center(
                       child: CircularProgressIndicator(
                         color: Colors.black,
@@ -218,7 +162,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-
             Positioned(
               top: MediaQuery.of(context).padding.top + 12,
               left: 16,
@@ -233,7 +176,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         : loc.error ??
                               (loc.currentAddress.isNotEmpty
                                   ? loc.currentAddress
-                                  : 'Toque no mapa para definir origem'),
+                                  : 'A carregar origem...'),
                     isLoading: loc.isLoading,
                     hasError: loc.error != null,
                   ),
@@ -241,11 +184,11 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   _InfoBar(
                     cor: Colors.red.shade600,
                     icone: Icons.location_on,
-                    label: loc.destinationLatLng == null
-                        ? 'Toque no mapa para definir destino'
+                    label: loc.destinationPoint == null
+                        ? 'A carregar destino...'
                         : loc.destinationAddress.isNotEmpty
-                        ? loc.destinationAddress
-                        : 'Destino definido',
+                            ? loc.destinationAddress
+                            : 'Destino definido',
                     isLoading: false,
                     hasError: false,
                   ),
@@ -260,22 +203,20 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   _CircleButton(
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      _mapController?.animateCamera(
-                        gmaps.CameraUpdate.zoomIn(),
+                      _mapController.move(
+                        _mapController.camera.center,
+                        _mapController.camera.zoom + 1,
                       );
                     },
-                    child: const Icon(
-                      Icons.add,
-                      size: 20,
-                      color: Colors.black87,
-                    ),
+                    child: const Icon(Icons.add, size: 20, color: Colors.black87),
                   ),
                   const SizedBox(height: 10),
                   _CircleButton(
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      _mapController?.animateCamera(
-                        gmaps.CameraUpdate.zoomOut(),
+                      _mapController.move(
+                        _mapController.camera.center,
+                        _mapController.camera.zoom - 1,
                       );
                     },
                     child: const Icon(
@@ -289,14 +230,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     onTap: () async {
                       HapticFeedback.lightImpact();
                       await loc.fetchCurrentLocation(widget.requestId);
-                      if (loc.currentLatLng != null) {
-                        _mapController?.animateCamera(
-                          gmaps.CameraUpdate.newLatLngZoom(
-                            loc.currentLatLng!,
-                            15,
-                          ),
-                        );
-                      }
+                      if (!mounted) return;
+                      _fitBounds(loc);
                     },
                     child: const Icon(
                       Icons.my_location,
@@ -318,7 +253,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.12),
+                        color: Colors.black.withValues(alpha: 0.12),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -332,13 +267,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         cor: Colors.green.shade600,
                         onTap: () {
                           setState(() => _modoDestino = false);
-                          final loc = context.read<SourceLocationProvider>();
-                          if (loc.currentLatLng != null) {
-                            _mapController?.animateCamera(
-                              gmaps.CameraUpdate.newLatLngZoom(
-                                loc.currentLatLng!,
-                                16,
-                              ),
+                          if (loc.currentPoint != null) {
+                            _mapController.move(
+                              _toLatLng(loc.currentPoint!),
+                              16,
                             );
                           }
                         },
@@ -349,13 +281,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         cor: Colors.red.shade600,
                         onTap: () {
                           setState(() => _modoDestino = true);
-                          final loc = context.read<SourceLocationProvider>();
-                          if (loc.destinationLatLng != null) {
-                            _mapController?.animateCamera(
-                              gmaps.CameraUpdate.newLatLngZoom(
-                                loc.destinationLatLng!,
-                                16,
-                              ),
+                          if (loc.destinationPoint != null) {
+                            _mapController.move(
+                              _toLatLng(loc.destinationPoint!),
+                              16,
                             );
                           }
                         },
@@ -374,7 +303,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     _slideController.dispose();
-    _mapController?.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 }
@@ -403,7 +332,7 @@ class _InfoBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -493,7 +422,7 @@ class _CircleButton extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.12),
+              color: Colors.black.withValues(alpha: 0.12),
               blurRadius: 12,
               offset: const Offset(0, 3),
             ),

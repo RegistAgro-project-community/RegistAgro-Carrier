@@ -1,35 +1,31 @@
 import 'package:dio/dio.dart';
+import 'package:registagrodriver/config/api_config.dart';
 import 'package:registagrodriver/models/direction_model.dart';
+import 'package:registagrodriver/repositories/interfaces/repositories.dart';
 import 'package:registagrodriver/repositories/storage.dart';
+import 'package:registagrodriver/services/dio_client.dart';
+import 'package:registagrodriver/utils/safe_error.dart';
 
-class GeoLocation {
-  Future<DirectionModel> carrierCoordinates(String requestId) async {
+class GeoLocation implements IGeolocationRepository {
+  @override
+  Future<DirectionModel> getCoordinates(String requestId) async {
     try {
       final token = await TokenStorage().readToken();
 
-      if (token.containsKey("error") || token["token"] == null) {
-        final message = token["error"] ?? "Faça login novamente";
-        throw Exception(message);
+      if (token.containsKey('error') || token['token'] == null) {
+        throw Exception(token['error'] ?? SafeErrorMessages.sessionExpired);
       }
 
-      final dio = Dio(
-        BaseOptions(
-          headers: {
-            'Content-Type': 'application/json',
-            'authorization': "Bearer ${token['token']}",
-          },
-        ),
-      );
+      final dio = DioClient().dio;
+      final res = await dio.get(ApiConfig.carrierDirection(requestId));
 
-      final res = await dio.get(
-        "https://api-registagro.onrender.com/location/carrier/direction/request/$requestId",
-      );
-
-      final List<dynamic> destinationData = res.data?["destination"] as List<dynamic>? ?? [];
-      final List<dynamic> originData = res.data?["origin"] as List<dynamic>? ?? [];
+      final List<dynamic> destinationData =
+          res.data?['destination'] as List<dynamic>? ?? [];
+      final List<dynamic> originData =
+          res.data?['origin'] as List<dynamic>? ?? [];
 
       if (originData.isEmpty || destinationData.isEmpty) {
-        throw Exception("Coordenadas não encontradas");
+        throw Exception('Coordenadas não encontradas');
       }
 
       final List<double> originDouble = _parseCoordinate(originData);
@@ -38,25 +34,14 @@ class GeoLocation {
       return DirectionModel(
         destination: destinationDouble,
         origin: originDouble,
-        start_at: res.data["start_at"],
-        update_at: res.data["update_at"],
+        start_at: res.data['start_at'] as String?,
+        update_at: res.data['update_at'] as String?,
       );
     } on DioException catch (e) {
-      String message = "Não foi possível obter a localização";
-
-      if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
-        message = e.response?.data?['error'] ?? 'Sessão expirada';
-      } else {
-        message =
-            e.response?.data?['error'] ??
-            e.response?.data?['info'] ??
-            e.message ??
-            message;
-      }
-
-      throw Exception(message);
+      throw Exception(SafeErrorMessages.fromDio(e));
     } catch (e) {
-      throw Exception("Ocorreu um erro inesperado ao obter localização");
+      if (e is Exception) rethrow;
+      throw Exception('Ocorreu um erro inesperado ao obter localização');
     }
   }
 
@@ -65,9 +50,9 @@ class GeoLocation {
       if (e is num) return e.toDouble();
       if (e is String) {
         return double.tryParse(e) ??
-            (throw Exception("Coordenada inválida: $e"));
+            (throw Exception('Coordenada inválida'));
       }
-      throw Exception("Tipo de coordenada inválido: ${e.runtimeType}");
+      throw Exception('Tipo de coordenada inválido');
     }).toList();
   }
 }

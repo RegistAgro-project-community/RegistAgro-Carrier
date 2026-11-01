@@ -1,16 +1,13 @@
 import 'package:dio/dio.dart';
-import 'package:elegant_notification/elegant_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:registagrodriver/auth/otpscreen/otp_screnn.dart';
+import 'package:registagrodriver/components/safe_notification.dart';
+import 'package:registagrodriver/config/api_config.dart';
 import 'package:registagrodriver/repositories/storage.dart';
 import 'package:registagrodriver/screens/MainNavScreen/main_nav_screen.dart';
+import 'package:registagrodriver/services/dio_client.dart';
+import 'package:registagrodriver/utils/safe_error.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-final dio = Dio(
-  BaseOptions(
-    headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-  ),
-);
 
 class SignupValidations {
   String? name;
@@ -20,6 +17,7 @@ class SignupValidations {
   String? adress;
   String? pass1;
   String? pass2;
+  String? captchaToken;
 
   SignupValidations({
     this.name,
@@ -29,131 +27,116 @@ class SignupValidations {
     this.adress,
     this.pass1,
     this.pass2,
+    this.captchaToken,
   });
 
-  sendEmail(BuildContext context) async {
-    final userData = {
-      "name": name,
-      "email": email,
-      "phone": phone,
-      "adress": adress,
-      "province": province,
-      "pass1": pass1,
-      "pass2": pass2,
+  Future<void> sendEmail(BuildContext context) async {
+    final userData = <String, dynamic>{
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'adress': adress,
+      'province': province,
+      'pass1': pass1,
+      'pass2': pass2,
     };
+    if (captchaToken != null && captchaToken!.isNotEmpty) {
+      userData['captchaToken'] = captchaToken;
+    }
 
     try {
-      final res = await dio.post(
-        'https://api-registagro.onrender.com/auth/signup/carrier',
-        data: userData,
+      final dio = DioClient().dio;
+      final res = await dio.post(ApiConfig.carrierSignup, data: userData);
+
+      final message = SafeErrorMessages.sanitize(
+        res.data['message']?.toString() ?? 'Código enviado',
       );
 
-      ElegantNotification.info(
-        title: Text("Enviando código"),
-        description: Text(res.data['message']),
-        height: 80,
-        // ignore: use_build_context_synchronously
-      ).show(context);
+      if (!context.mounted) return;
+      showSafeNotification(
+        context,
+        title: 'Enviando código',
+        description: message,
+        backgroundColor: Colors.blue.shade700,
+        icon: Icons.info_outline,
+      );
 
-      final prefes = await SharedPreferences.getInstance();
-      prefes.setString("last_route", '/otpCode');
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_route', '/otpCode');
 
+      if (!context.mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => OtpScreen()),
+        MaterialPageRoute(builder: (context) => const OtpScreen()),
         (route) => false,
       );
     } on DioException catch (e) {
-      final data = e.response?.data;
-
-      if (data is Map && data['error'] is List) {
-        final List errors = data['error'];
-
-        if (errors.isNotEmpty && errors.first is String) {
-          final message = errors.join('\n');
-
-          ElegantNotification.error(
-            title: const Text("Error"),
-            description: Text(message),
-            height: 120,
-            // ignore: use_build_context_synchronously
-          ).show(context);
-        } else {
-          for (final err in errors) {
-            final message = err['message'];
-
-            ElegantNotification.error(
-              title: Text("Error"),
-              description: Text(message),
-              height: 80,
-              // ignore: use_build_context_synchronously
-            ).show(context);
-
-            await Future.delayed(const Duration(seconds: 5));
-          }
-        }
-      } else {
-        ElegantNotification.error(
-          title: const Text("Error"),
-          description: Text(
-            e.response?.data['message'] ?? e.response?.data["error"],
-          ),
-          height: 80,
-          // ignore: use_build_context_synchronously
-        ).show(context);
-      }
+      if (!context.mounted) return;
+      showSafeNotification(
+        context,
+        title: 'Erro',
+        description: SafeErrorMessages.fromDio(e),
+      );
     }
   }
 
-  validateOtp(BuildContext context, String code) async {
+  Future<void> validateOtp(BuildContext context, String code) async {
     try {
-      final otpCode = await dio.get(
-        'https://api-registagro.onrender.com/auth/signup/verify/$code',
-      );
+      final dio = DioClient().dio;
+      final otpCode = await dio.get(ApiConfig.verifyOtp(code));
 
       final authHeader = otpCode.headers.value('authorization');
-      final token = authHeader?.split(" ")[1];
+      final token = authHeader?.split(' ').last;
+
+      if (token == null || token.isEmpty) {
+        if (!context.mounted) return;
+        showSafeNotification(
+          context,
+          title: 'Erro',
+          description: SafeErrorMessages.generic,
+        );
+        return;
+      }
 
       final tokenStorage = TokenStorage();
+      await tokenStorage.storeToken(token);
 
-      try {
-        await tokenStorage.storeToken(token!);
-
-        final message = otpCode.data['message'];
-
-        ElegantNotification.success(
-          title: Text("Sucess"),
-          description: Text(message),
-          height: 80,
-          // ignore: use_build_context_synchronously
-        ).show(context);
-
-        final prefes = await SharedPreferences.getInstance();
-        prefes.setString("last_route", '/MainPage');
-
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => MainNavScreen()),
-          (route) => false,
-        );
-      } catch (e) {
-        ElegantNotification.error(
-          title: Text("Error"),
-          description: Text('Ocorreu um erro inesperado'),
-          height: 80,
-          // ignore: use_build_context_synchronously
-        ).show(context);
+      final userId = otpCode.data is Map
+          ? otpCode.data['userId'] ?? otpCode.data['id']
+          : null;
+      if (userId is String && userId.isNotEmpty) {
+        await tokenStorage.storeCarrierId(userId);
       }
-    } on DioException catch (e) {
-      final message =
-          e.response?.data?['message'] ?? e.response?.data?['error'];
 
-      ElegantNotification.error(
-        title: Text("Error"),
-        description: Text(message),
-        height: 80,
-        // ignore: use_build_context_synchronously
-      ).show(context);
+      final message = SafeErrorMessages.sanitize(
+        otpCode.data['message']?.toString() ?? 'Conta verificada',
+      );
+
+      if (!context.mounted) return;
+      showSafeNotification(
+        context,
+        title: 'Sucesso',
+        description: message,
+        backgroundColor: Colors.green.shade700,
+        icon: Icons.verified,
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_route', '/MainPage');
+
+      if (!context.mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MainNavScreen()),
+        (route) => false,
+      );
+    } on DioException catch (e) {
+      if (!context.mounted) return;
+      showSafeNotification(
+        context,
+        title: 'Erro',
+        description: SafeErrorMessages.fromDio(e),
+      );
     }
   }
 }

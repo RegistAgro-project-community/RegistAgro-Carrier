@@ -1,25 +1,28 @@
 class UserModel {
-  final String name;
-  final String email;
-  final String phone;
-  final String bio;
+  final String? id;
+  final String? name;
+  final String? email;
+  final String? phone;
+  final String? bio;
   final String? profile;
-  final String province;
-  final String adress;
+  final String? province;
+  final String? adress;
   final String balance;
 
   UserModel({
-    required this.name,
-    required this.email,
-    required this.phone,
-    required this.bio,
-    required this.province,
-    required this.adress,
+    this.id,
+    this.name,
+    this.email,
+    this.phone,
+    this.bio,
+    this.province,
+    this.adress,
     required this.balance,
     this.profile,
   });
 
   UserModel copyWith({
+    String? id,
     String? name,
     String? email,
     String? phone,
@@ -27,17 +30,18 @@ class UserModel {
     String? adress,
     String? bio,
     String? profile,
-    String? balance
+    String? balance,
   }) {
     return UserModel(
+      id: id ?? this.id,
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
       bio: bio ?? this.bio,
       profile: profile ?? this.profile,
-      province: province ?? "",
-      adress: adress ?? "",
-      balance: balance ?? this.balance
+      province: province ?? this.province,
+      adress: adress ?? this.adress,
+      balance: balance ?? this.balance,
     );
   }
 }
